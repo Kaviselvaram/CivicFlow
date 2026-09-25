@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { CustomCursor } from "@/components/ui/CustomCursor";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -38,7 +39,8 @@ export default function RootLayout({
       lang="en"
       className={`${fraunces.variable} ${plusJakarta.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-[#FBF9F5] text-[#182026]">
+      <body className="min-h-full flex flex-col font-sans bg-[#FAF8F5] text-[#12181F]">
+        <CustomCursor />
         {children}
       </body>
     </html>

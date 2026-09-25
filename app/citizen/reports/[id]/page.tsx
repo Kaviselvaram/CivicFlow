@@ -9,7 +9,7 @@ import { SplitBeforeAfter } from "@/components/citizen/SplitBeforeAfter";
 import { IssueTimeline } from "@/components/citizen/IssueTimeline";
 import { VerificationPrompt } from "@/components/citizen/VerificationPrompt";
 import { ToastProvider } from "@/components/ui/Toast";
-import { MapPinIcon, BuildingIcon, TruckIcon } from "@/components/icons";
+import { MapPinIcon, BuildingIcon, TruckIcon, ClockIcon, UserIcon } from "@/components/icons";
 
 export const revalidate = 0;
 
@@ -42,27 +42,27 @@ export default async function CitizenIssueDetailPage({
 
   return (
     <ToastProvider>
-      <div className="min-h-screen flex flex-col bg-[#FBF9F5] text-[#182026]">
+      <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#12181F]">
         <Navbar currentUser={currentUser} />
 
         <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full space-y-8">
           {/* Breadcrumb Navigation */}
-          <div className="flex items-center gap-2 text-xs font-mono text-[#788290]">
+          <div className="flex items-center gap-2 text-xs font-mono text-[#7A8799]">
             <Link
               href="/citizen/dashboard"
-              className="hover:text-[#182026] transition"
+              className="hover:text-[#12181F] transition"
             >
               ← My Citizen Reports
             </Link>
             <span>/</span>
-            <span className="font-bold text-[#182026]">{issue.ticketNumber}</span>
+            <span className="font-bold text-[#12181F]">{issue.ticketNumber}</span>
           </div>
 
-          {/* Issue Header Ribbon */}
-          <div className="bg-white border border-[#E8E2D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
+          {/* 1. THE PROBLEM: Issue Header Card */}
+          <div className="bg-white border border-[#E6DFD4] rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-sm font-bold text-[#182026]">
+                <span className="font-mono text-sm font-bold text-[#12181F]">
                   {issue.ticketNumber}
                 </span>
                 <CategoryBadge category={issue.category} />
@@ -71,36 +71,62 @@ export default async function CitizenIssueDetailPage({
               <StatusBadge status={issue.status} />
             </div>
 
-            <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#182026]">
+            <h1 className="font-display font-bold text-2xl sm:text-4xl text-[#12181F]">
               {issue.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-[#788290] pt-1">
-              <span className="flex items-center gap-1 font-medium text-[#182026]">
-                <MapPinIcon size={14} className="text-[#E05A47]" />
+            <div className="flex flex-wrap items-center gap-4 text-xs text-[#7A8799] pt-1">
+              <span className="flex items-center gap-1 font-medium text-[#12181F]">
+                <MapPinIcon size={14} className="text-[#D94532]" />
                 {issue.address} ({issue.ward || "Ward 4"})
               </span>
               <span>•</span>
               <span className="font-mono">
                 Reported {new Date(issue.createdAt).toLocaleDateString()}
               </span>
-              {issue.department && (
-                <>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <BuildingIcon size={14} className="text-[#244B5C]" />
-                    {issue.department.name}
-                  </span>
-                </>
-              )}
+              <span>•</span>
+              <span className="font-mono text-[#14352B] font-bold">
+                Target SLA: {issue.department?.slaHoursDefault || 48}h
+              </span>
             </div>
 
-            <p className="text-sm text-[#4B5563] leading-relaxed pt-2 border-t border-[#F4EFEA]">
+            <p className="text-sm text-[#475467] leading-relaxed pt-3 border-t border-[#F3EFE8]">
               {issue.description}
             </p>
           </div>
 
-          {/* Verification Call-To-Action Box (If RESOLVED or VERIFIED) */}
+          {/* 2. WHO IS HANDLING IT: Operational Assignment Card */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white border border-[#E6DFD4] rounded-2xl p-5 space-y-2">
+              <span className="text-[10px] font-mono uppercase text-[#7A8799] font-bold">
+                Assigned Municipal Department
+              </span>
+              <div className="flex items-center gap-2.5 text-sm font-bold text-[#12181F]">
+                <BuildingIcon size={18} className="text-[#1E4E68]" />
+                <span>{issue.department ? issue.department.name : "Department of Public Works"}</span>
+              </div>
+              <p className="text-xs text-[#7A8799]">
+                Responsible for district maintenance & material standards
+              </p>
+            </div>
+
+            <div className="bg-white border border-[#E6DFD4] rounded-2xl p-5 space-y-2">
+              <span className="text-[10px] font-mono uppercase text-[#7A8799] font-bold">
+                Dispatched Field Unit
+              </span>
+              <div className="flex items-center gap-2.5 text-sm font-bold text-[#14352B]">
+                <TruckIcon size={18} className="text-[#14352B]" />
+                <span>
+                  {issue.crew ? `${issue.crew.name} (${issue.crew.vehicleId || "Unit"})` : "Triage Assignment Pending"}
+                </span>
+              </div>
+              <p className="text-xs text-[#7A8799]">
+                {issue.crew?.leadName ? `Lead Foreman: ${issue.crew.leadName}` : "Crew being assigned by supervisor"}
+              </p>
+            </div>
+          </div>
+
+          {/* 3. VERIFICATION CALL-TO-ACTION (When RESOLVED or VERIFIED) */}
           <VerificationPrompt
             issueId={issue.id}
             ticketNumber={issue.ticketNumber}
@@ -111,73 +137,76 @@ export default async function CitizenIssueDetailPage({
             verifiedAt={issue.verifiedAt}
           />
 
-          {/* Visual Evidence Section */}
-          <div className="bg-white border border-[#E8E2D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display font-bold text-xl text-[#182026]">
-                Photographic Evidence
-              </h2>
+          {/* 4. BEFORE / AFTER RESOLUTION PROOF */}
+          <div className="bg-white border border-[#E6DFD4] rounded-3xl p-6 sm:p-8 shadow-xs space-y-5">
+            <div className="flex items-center justify-between border-b border-[#E6DFD4] pb-4">
+              <div>
+                <h2 className="font-display font-bold text-xl text-[#12181F]">
+                  Photographic Resolution Evidence
+                </h2>
+                <p className="text-xs text-[#7A8799] mt-0.5">
+                  Physical comparison of the defect before remediation and after field completion.
+                </p>
+              </div>
               {issue.resolutionPhotoUrl && (
-                <span className="text-xs font-mono text-[#19382F] font-bold bg-[#EBF3F0] px-2 py-0.5 rounded">
-                  Dual Evidence Comparison Available
+                <span className="text-xs font-mono text-[#14352B] font-bold bg-[#EBF3F0] px-2.5 py-1 rounded-md">
+                  Interactive Comparison Active
                 </span>
               )}
             </div>
 
             {issue.resolutionPhotoUrl ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <SplitBeforeAfter
                   beforeUrl={issue.photoUrl}
                   afterUrl={issue.resolutionPhotoUrl}
-                  beforeLabel="Original Defect"
-                  afterLabel="Completed Field Repair"
+                  beforeLabel="Original Defect Observed"
+                  afterLabel="Field Crew Resolution Proof"
                 />
-                <p className="text-xs text-[#788290] text-center font-mono">
-                  Drag the slider horizontally to compare before and after conditions
+                <p className="text-xs text-[#7A8799] text-center font-mono">
+                  Drag the slider or use left/right arrow keys to inspect the repair boundary
                 </p>
+
                 {issue.resolutionNotes && (
-                  <div className="p-4 bg-[#FBF9F5] rounded-xl border border-[#E8E2D8] mt-3">
-                    <span className="text-xs font-mono font-bold uppercase text-[#19382F]">
-                      Field Crew Supervisor Remarks
+                  <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#E6DFD4] space-y-1 mt-4">
+                    <span className="text-[10px] font-mono font-bold uppercase text-[#14352B]">
+                      Supervisor Resolution Remarks
                     </span>
-                    <p className="text-xs text-[#4B5563] mt-1 leading-relaxed">
+                    <p className="text-xs text-[#475467] leading-relaxed">
                       {issue.resolutionNotes}
                     </p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="relative rounded-xl overflow-hidden border border-[#E8E2D8] max-h-96 aspect-video bg-black/5">
+              <div className="relative rounded-2xl overflow-hidden border border-[#E6DFD4] max-h-96 aspect-video bg-black/5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={issue.photoUrl}
                   alt="Issue photo"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-3 left-3 bg-black/75 backdrop-blur-xs text-white text-xs font-mono px-2.5 py-1 rounded">
-                  Observed Defect Photo
+                <div className="absolute bottom-3 left-3 bg-[#12181F]/90 backdrop-blur-md text-white text-xs font-mono px-3 py-1 rounded-lg">
+                  Observed Defect Evidence
                 </div>
               </div>
             )}
           </div>
 
-          {/* Chronological Audit Timeline */}
-          <div className="bg-white border border-[#E8E2D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex items-center justify-between border-b border-[#E8E2D8] pb-4">
+          {/* 5. CHRONOLOGICAL AUDIT TRAIL */}
+          <div className="bg-white border border-[#E6DFD4] rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex items-center justify-between border-b border-[#E6DFD4] pb-4">
               <div>
-                <h2 className="font-display font-bold text-xl text-[#182026]">
-                  Resolution Audit Trail
+                <h2 className="font-display font-bold text-xl text-[#12181F]">
+                  Chronological Resolution Audit
                 </h2>
-                <p className="text-xs text-[#788290] mt-0.5">
-                  Verified timestamp log of every status transition and work action.
+                <p className="text-xs text-[#7A8799] mt-0.5">
+                  Immutable event trail tracking every operational handover and status change.
                 </p>
               </div>
-              {issue.crew && (
-                <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-[#19382F] bg-[#EBF3F0] px-3 py-1.5 rounded-lg border border-[#D0E2DB]">
-                  <TruckIcon size={16} />
-                  <span>Assigned: {issue.crew.name}</span>
-                </div>
-              )}
+              <span className="font-mono text-xs text-[#7A8799]">
+                {issue.statusHistory.length} Recorded Milestones
+              </span>
             </div>
 
             <IssueTimeline

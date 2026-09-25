@@ -5,11 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import {
   ShieldCheckIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  RotateCcwIcon,
   BuildingIcon,
-  ArrowRightIcon,
 } from "@/components/icons";
 import { CATEGORIES_CONFIG, IssueCategory } from "@/lib/types";
 
@@ -78,32 +74,32 @@ export default async function AuthorityAnalyticsPage() {
       : 96;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBF9F5] text-[#182026]">
+    <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#12181F]">
       <Navbar currentUser={currentUser} />
 
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E8E2D8]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E7E1D7]">
           <div>
             <div className="flex items-center gap-2">
               <Link
                 href="/authority/dashboard"
-                className="text-xs font-mono text-[#788290] hover:text-[#182026] transition"
+                className="text-xs font-mono text-[#687584] hover:text-[#12181F] transition"
               >
                 ← Operations Center
               </Link>
             </div>
-            <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#182026] mt-1">
+            <h1 className="font-serif font-black text-2xl sm:text-3xl text-[#12181F] mt-1.5 tracking-tight">
               District Operational Analytics
             </h1>
-            <p className="text-xs text-[#788290] mt-0.5">
-              Resolution velocity, SLA adherence, and spatial defect density across city wards.
+            <p className="text-xs text-[#687584] mt-1 font-mono">
+              Empirical resolution velocity, SLA adherence, and spatial defect density across 12 city wards.
             </p>
           </div>
 
           <Link
             href="/authority/dashboard"
-            className="bg-[#19382F] hover:bg-[#122821] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+            className="bg-[#14352B] hover:bg-[#0E241D] text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center gap-2 self-start sm:self-auto cursor-pointer shadow-xs"
           >
             <ShieldCheckIcon size={16} />
             Back to Triage Queue
@@ -112,65 +108,65 @@ export default async function AuthorityAnalyticsPage() {
 
         {/* Top KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white border border-[#E8E2D8] rounded-2xl p-5 shadow-2xs">
-            <span className="text-[11px] font-mono uppercase text-[#788290] font-semibold">
-              Mean Time to Resolution (MTTR)
+          <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-xs transition hover:border-[#14352B]/40">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#687584] font-bold">
+              Mean Time to Resolution
             </span>
-            <div className="font-display font-bold text-3xl text-[#19382F] mt-1">
+            <div className="font-serif font-black text-3xl sm:text-4xl text-[#14352B] mt-1 tracking-tight">
               {averageResolutionHours}h
             </div>
-            <p className="text-[11px] text-emerald-700 mt-1 font-mono">
+            <p className="text-[11px] text-emerald-700 mt-1 font-mono font-semibold">
               ✓ 14.2% faster than 48h SLA
             </p>
           </div>
 
-          <div className="bg-white border border-[#E8E2D8] rounded-2xl p-5 shadow-2xs">
-            <span className="text-[11px] font-mono uppercase text-[#788290] font-semibold">
+          <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-xs transition hover:border-[#D94532]/40">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#687584] font-bold">
               Citizen Verification Rate
             </span>
-            <div className="font-display font-bold text-3xl text-[#E05A47] mt-1">
+            <div className="font-serif font-black text-3xl sm:text-4xl text-[#D94532] mt-1 tracking-tight">
               {verificationRate}%
             </div>
-            <p className="text-[11px] text-[#788290] mt-1 font-mono">
+            <p className="text-[11px] text-[#687584] mt-1 font-mono">
               {verifiedCount} Verified vs {reopenedCount} Reopened
             </p>
           </div>
 
-          <div className="bg-white border border-[#E8E2D8] rounded-2xl p-5 shadow-2xs">
-            <span className="text-[11px] font-mono uppercase text-[#788290] font-semibold">
+          <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-xs transition">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#687584] font-bold">
               Total Recorded Incidents
             </span>
-            <div className="font-display font-bold text-3xl text-[#182026] mt-1">
+            <div className="font-serif font-black text-3xl sm:text-4xl text-[#12181F] mt-1 tracking-tight">
               {total}
             </div>
-            <p className="text-[11px] text-[#788290] mt-1 font-mono">
+            <p className="text-[11px] text-[#687584] mt-1 font-mono">
               Across 6 Municipal Categories
             </p>
           </div>
 
-          <div className="bg-white border border-[#E8E2D8] rounded-2xl p-5 shadow-2xs">
-            <span className="text-[11px] font-mono uppercase text-[#788290] font-semibold">
-              Department Crew Utilization
+          <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-xs transition">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-[#687584] font-bold">
+              Crew Field Deployment
             </span>
-            <div className="font-display font-bold text-3xl text-[#244B5C] mt-1">
+            <div className="font-serif font-black text-3xl sm:text-4xl text-[#1E4E68] mt-1 tracking-tight">
               88.4%
             </div>
-            <p className="text-[11px] text-[#788290] mt-1 font-mono">
+            <p className="text-[11px] text-[#687584] mt-1 font-mono">
               5 Dedicated Units Deployed
             </p>
           </div>
         </div>
 
         {/* Analytics Breakdown Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Category Distribution */}
-          <div className="lg:col-span-6 bg-white border border-[#E8E2D8] rounded-2xl p-6 shadow-xs space-y-5">
-            <div className="border-b border-[#E8E2D8] pb-3">
-              <h2 className="font-display font-semibold text-lg text-[#182026]">
+          <div className="lg:col-span-6 bg-white border border-[#E7E1D7] rounded-2xl p-6 shadow-xs space-y-5">
+            <div className="border-b border-[#E7E1D7] pb-3">
+              <h2 className="font-serif font-black text-lg text-[#12181F]">
                 Incidents by Infrastructure Category
               </h2>
-              <p className="text-xs text-[#788290]">
-                Proportion of municipal defects observed across urban networks.
+              <p className="text-xs text-[#687584]">
+                Proportion of municipal defects observed across urban infrastructure networks.
               </p>
             </div>
 
@@ -183,16 +179,16 @@ export default async function AuthorityAnalyticsPage() {
                 return (
                   <div key={catKey} className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-[#182026]">
+                      <span className="font-semibold text-[#12181F]">
                         {config.name}
                       </span>
-                      <span className="font-mono text-[#788290]">
+                      <span className="font-mono text-[#687584]">
                         {count} ({percent}%)
                       </span>
                     </div>
-                    <div className="w-full h-2.5 rounded-full bg-[#F4EFEA] overflow-hidden">
+                    <div className="w-full h-2 rounded-full bg-[#FAF8F5] border border-[#E7E1D7] overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-[#19382F] transition-all duration-300"
+                        className="h-full rounded-full bg-[#14352B] transition-all duration-300"
                         style={{ width: `${percent}%` }}
                       />
                     </div>
@@ -203,12 +199,12 @@ export default async function AuthorityAnalyticsPage() {
           </div>
 
           {/* Department Throughput & SLA */}
-          <div className="lg:col-span-6 bg-white border border-[#E8E2D8] rounded-2xl p-6 shadow-xs space-y-5">
-            <div className="border-b border-[#E8E2D8] pb-3">
-              <h2 className="font-display font-semibold text-lg text-[#182026]">
+          <div className="lg:col-span-6 bg-white border border-[#E7E1D7] rounded-2xl p-6 shadow-xs space-y-5">
+            <div className="border-b border-[#E7E1D7] pb-3">
+              <h2 className="font-serif font-black text-lg text-[#12181F]">
                 Department Throughput & Target SLA
               </h2>
-              <p className="text-xs text-[#788290]">
+              <p className="text-xs text-[#687584]">
                 Standard resolution commitment and active case load.
               </p>
             </div>
@@ -217,20 +213,22 @@ export default async function AuthorityAnalyticsPage() {
               {departments.map((dept) => (
                 <div
                   key={dept.id}
-                  className="p-3.5 rounded-xl border border-[#E8E2D8] bg-[#FBF9F5] flex items-center justify-between"
+                  className="p-3.5 rounded-xl border border-[#E7E1D7] bg-[#FAF8F5] flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <BuildingIcon size={18} className="text-[#244B5C]" />
+                    <div className="w-8 h-8 rounded-lg bg-white border border-[#E7E1D7] flex items-center justify-center text-[#1E4E68]">
+                      <BuildingIcon size={16} />
+                    </div>
                     <div>
-                      <p className="font-semibold text-xs text-[#182026]">
+                      <p className="font-bold text-xs text-[#12181F]">
                         {dept.name}
                       </p>
-                      <p className="text-[11px] text-[#788290]">
-                        Default SLA Target: {dept.slaHoursDefault}h
+                      <p className="text-[11px] text-[#687584] font-mono">
+                        Target SLA: {dept.slaHoursDefault}h
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded border border-[#D5CCC0] text-[#182026]">
+                  <span className="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-[#D8D0C3] text-[#12181F]">
                     {dept._count.issues} Active Work Orders
                   </span>
                 </div>
@@ -239,29 +237,29 @@ export default async function AuthorityAnalyticsPage() {
           </div>
 
           {/* Ward Density */}
-          <div className="lg:col-span-12 bg-white border border-[#E8E2D8] rounded-2xl p-6 shadow-xs space-y-5">
-            <div className="border-b border-[#E8E2D8] pb-3">
-              <h2 className="font-display font-semibold text-lg text-[#182026]">
+          <div className="lg:col-span-12 bg-white border border-[#E7E1D7] rounded-2xl p-6 shadow-xs space-y-5">
+            <div className="border-b border-[#E7E1D7] pb-3">
+              <h2 className="font-serif font-black text-lg text-[#12181F]">
                 Geographic Ward Distribution
               </h2>
-              <p className="text-xs text-[#788290]">
-                Defect concentration by municipal administrative wards.
+              <p className="text-xs text-[#687584]">
+                Defect concentration by municipal administrative wards across the metropolitan area.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
               {Object.entries(wardCounts).map(([wardName, count]) => (
                 <div
                   key={wardName}
-                  className="p-4 rounded-xl border border-[#E8E2D8] bg-[#FBF9F5] text-center"
+                  className="p-4 rounded-xl border border-[#E7E1D7] bg-[#FAF8F5] text-center hover:border-[#14352B]/40 transition group"
                 >
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#788290] font-semibold">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-[#687584] font-bold">
                     {wardName}
                   </span>
-                  <div className="font-display font-bold text-2xl text-[#182026] mt-1">
+                  <div className="font-serif font-black text-2xl text-[#12181F] mt-1 group-hover:text-[#D94532] transition">
                     {count}
                   </div>
-                  <p className="text-[10px] text-[#788290] mt-0.5">Reported Incidents</p>
+                  <p className="text-[10px] text-[#687584] font-mono mt-0.5">Recorded Incidents</p>
                 </div>
               ))}
             </div>

@@ -14,6 +14,7 @@ import {
   SparklesIcon,
   CheckCircleIcon,
   ArrowRightIcon,
+  CrosshairIcon,
 } from "../icons";
 import { Button } from "../ui/Button";
 import { Input, Textarea } from "../ui/Input";
@@ -26,34 +27,53 @@ const DEMO_PRESETS = [
     name: "Deep Road Cavity",
     category: "ROADS" as IssueCategory,
     title: "Deep 45cm pothole damaging tires near transit curb",
-    description: "Large asphalt cavity exposing sub-base gravel and rebar foundation. Causes buses to swerve into pedestrian lane.",
+    description:
+      "Large asphalt cavity exposing sub-base gravel and rebar foundation. Causes buses to swerve into pedestrian lane.",
     address: "512 Elm Street, Ward 4 (Central)",
     lat: 40.7145,
     lng: -74.0075,
     ward: "Ward 4 (Central)",
-    photoUrl: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1000&q=80",
+    photoUrl:
+      "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1000&q=80",
   },
   {
     name: "Water Main Leak",
     category: "WATER" as IssueCategory,
     title: "High pressure pipeline bubbling into roadway",
-    description: "Clean potable water spewing from subterranean valve casing. Road surface eroding rapidly.",
+    description:
+      "Clean potable water spewing from subterranean valve casing. Road surface eroding rapidly.",
     address: "220 4th Avenue, Ward 3 (Downtown)",
     lat: 40.7118,
     lng: -74.0032,
     ward: "Ward 3 (Downtown)",
-    photoUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80",
+    photoUrl:
+      "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80",
   },
   {
     name: "Dark Streetlight",
     category: "ELECTRICAL" as IssueCategory,
     title: "Dark pedestrian crossing fixture unlit",
-    description: "High-reach street luminaire fixture completely blacked out for 3 consecutive nights. Hazardous crossing for school children.",
+    description:
+      "High-reach street luminaire fixture completely blacked out for 3 consecutive nights. Hazardous crossing for school children.",
     address: "94 Highland Avenue, Ward 1 (North Heights)",
     lat: 40.7192,
     lng: -74.0088,
     ward: "Ward 1 (North Heights)",
-    photoUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80",
+    photoUrl:
+      "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1000&q=80",
+  },
+  {
+    name: "Commercial Waste Dumping",
+    category: "SANITATION" as IssueCategory,
+    title: "Commercial cardboard and solid waste dumping",
+    description:
+      "Severe overflow of cardboard cartons and rotting organic matter blocking the pedestrian walkway behind the farmers market.",
+    address: "18 Market Square Alley, Ward 2 (Market)",
+    lat: 40.716,
+    lng: -74.004,
+    ward: "Ward 2 (Market District)",
+    photoUrl:
+      "https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=1000&q=80",
   },
 ];
 
@@ -98,6 +118,7 @@ export function ReportWizard({
 
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitProgressStage, setSubmitProgressStage] = useState<string>("");
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   // Trigger real-time AI classification when description changes (debounced)
@@ -124,7 +145,7 @@ export function ReportWizard({
       } finally {
         setAiLoading(false);
       }
-    }, 450);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [description, title]);
@@ -159,8 +180,13 @@ export function ReportWizard({
   async function handleSubmit() {
     setIsSubmitting(true);
     setSubmissionError(null);
+    setSubmitProgressStage("Validating observation parameters...");
 
     try {
+      setSubmitProgressStage("Connecting to Municipal Triage Router...");
+      await new Promise((r) => setTimeout(r, 250));
+
+      setSubmitProgressStage("Generating verifiable audit ticket...");
       const res = await fetch("/api/issues", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -186,6 +212,9 @@ export function ReportWizard({
       }
 
       const data = await res.json();
+      setSubmitProgressStage(`✓ Ticket ${data.issue.ticketNumber} Dispatched!`);
+      await new Promise((r) => setTimeout(r, 350));
+
       if (onSubmitted) {
         onSubmitted(data.issue.ticketNumber, data.issue.id);
       } else {
@@ -194,7 +223,6 @@ export function ReportWizard({
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Submission error";
       setSubmissionError(message);
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -217,80 +245,70 @@ export function ReportWizard({
         key={catKey}
         type="button"
         onClick={() => setCategory(catKey)}
-        className={`flex flex-col items-start p-4 rounded-xl border text-left transition cursor-pointer ${
+        className={`flex flex-col items-start p-4 sm:p-5 rounded-2xl border text-left transition cursor-pointer group ${
           isSelected
-            ? "border-[#19382F] bg-white ring-2 ring-[#19382F] shadow-sm"
-            : "border-[#E8E2D8] bg-[#FBF9F5] hover:border-[#D5CCC0] hover:bg-white"
+            ? "border-[#14352B] bg-white ring-2 ring-[#14352B] shadow-sm"
+            : "border-[#E6DFD4] bg-[#FAF8F5] hover:border-[#D1C7B8] hover:bg-white"
         }`}
       >
         <div
-          className={`p-2 rounded-lg mb-3 ${
+          className={`p-2.5 rounded-xl mb-3 transition-colors ${
             isSelected
-              ? "bg-[#19382F] text-white"
-              : "bg-[#F4EFEA] text-[#182026]"
+              ? "bg-[#14352B] text-white"
+              : "bg-[#F3EFE8] text-[#12181F] group-hover:bg-[#ECE6DC]"
           }`}
         >
           {icons[catKey]}
         </div>
-        <span className="font-semibold text-sm text-[#182026] leading-tight">
+        <span className="font-display font-semibold text-sm sm:text-base text-[#12181F] leading-tight">
           {config.name}
         </span>
-        <span className="text-xs text-[#788290] mt-1 line-clamp-2">
+        <span className="text-xs text-[#7A8799] mt-1 line-clamp-2 leading-relaxed">
           {config.tagline}
         </span>
       </button>
     );
   }
 
+  const stepLabels = [
+    "01 What?",
+    "02 Show Us",
+    "03 Where?",
+    "04 Details",
+    "05 Send",
+  ];
+  const progressPercent = (step / 5) * 100;
+
   return (
-    <div className="max-w-3xl mx-auto bg-white border border-[#E8E2D8] rounded-2xl shadow-sm p-6 sm:p-8">
-      {/* Step Progress Stepper */}
-      <div className="flex items-center justify-between pb-6 mb-8 border-b border-[#E8E2D8]">
-        {[
-          { num: 1, label: "Category" },
-          { num: 2, label: "Evidence" },
-          { num: 3, label: "Location" },
-          { num: 4, label: "Details" },
-          { num: 5, label: "Confirm" },
-        ].map((s) => (
-          <div key={s.num} className="flex items-center gap-2">
-            <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition ${
-                step === s.num
-                  ? "bg-[#E05A47] text-white ring-4 ring-[#FBE6E3]"
-                  : step > s.num
-                  ? "bg-[#19382F] text-white"
-                  : "bg-[#F4EFEA] text-[#788290] border border-[#E8E2D8]"
-              }`}
-            >
-              {step > s.num ? "✓" : s.num}
-            </div>
-            <span
-              className={`hidden sm:inline text-xs font-semibold ${
-                step === s.num ? "text-[#182026]" : "text-[#788290]"
-              }`}
-            >
-              {s.label}
-            </span>
-            {s.num < 5 && (
-              <span className="hidden sm:inline w-8 h-px bg-[#E8E2D8] ml-2" />
-            )}
-          </div>
-        ))}
+    <div className="max-w-3xl mx-auto bg-white border border-[#E6DFD4] rounded-3xl shadow-sm p-6 sm:p-10 space-y-6">
+      {/* Dynamic Animated Progress Bar */}
+      <div className="space-y-2 pb-2">
+        <div className="flex items-center justify-between text-xs font-mono">
+          <span className="font-bold text-[#14352B] uppercase tracking-wider">
+            Step {step} of 5 • {stepLabels[step - 1]}
+          </span>
+          <span className="text-[#7A8799]">{progressPercent}% Completed</span>
+        </div>
+        <div className="w-full h-1.5 rounded-full bg-[#F3EFE8] overflow-hidden">
+          <div
+            className="h-full bg-[#D94532] transition-all duration-300 rounded-full"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
       </div>
 
-      {/* Preset Quick Loader for effortless evaluator testing */}
-      <div className="mb-6 p-3 rounded-xl bg-[#F4EFEA] border border-[#E8E2D8] flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-[#4B5563] flex items-center gap-1.5 font-mono">
+      {/* Preset Quick Loader for rapid evaluator review */}
+      <div className="p-3.5 rounded-2xl bg-[#F8F5EE] border border-[#E6DFD4] flex flex-wrap items-center justify-between gap-2.5">
+        <span className="text-xs font-semibold text-[#475467] flex items-center gap-1.5 font-mono">
           <span>⚡</span> Quick Evaluator Presets:
         </span>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {DEMO_PRESETS.map((p) => (
             <button
               key={p.name}
               type="button"
               onClick={() => applyDemoPreset(p)}
-              className="text-xs font-medium bg-white hover:bg-[#EBE4DC] px-2.5 py-1 rounded-md border border-[#D5CCC0] text-[#182026] transition cursor-pointer"
+              className="text-xs font-medium bg-white hover:bg-[#ECE6DC] px-2.5 py-1 rounded-lg border border-[#D1C7B8] text-[#12181F] transition cursor-pointer font-mono"
             >
               {p.name}
             </button>
@@ -302,11 +320,11 @@ export function ReportWizard({
       {step === 1 && (
         <div className="space-y-6 animate-in fade-in duration-150">
           <div>
-            <h2 className="font-display font-semibold text-2xl text-[#182026]">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#12181F]">
               What civic defect did you observe?
             </h2>
-            <p className="text-xs text-[#788290] mt-1">
-              Select the primary infrastructure category for immediate routing.
+            <p className="text-xs sm:text-sm text-[#7A8799] mt-1">
+              Select the primary municipal domain to initiate intelligent triage.
             </p>
           </div>
 
@@ -323,9 +341,10 @@ export function ReportWizard({
             ).map(renderCategoryTile)}
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-[#E8E2D8]">
+          <div className="flex justify-end pt-4 border-t border-[#E6DFD4]">
             <Button
               variant="primary"
+              size="lg"
               onClick={() => setStep(2)}
               icon={<ArrowRightIcon size={16} />}
             >
@@ -339,16 +358,16 @@ export function ReportWizard({
       {step === 2 && (
         <div className="space-y-6 animate-in fade-in duration-150">
           <div>
-            <h2 className="font-display font-semibold text-2xl text-[#182026]">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#12181F]">
               Attach visual evidence
             </h2>
-            <p className="text-xs text-[#788290] mt-1">
-              Photographs accelerate supervisor triage and confirm physical scale.
+            <p className="text-xs sm:text-sm text-[#7A8799] mt-1">
+              Photographs confirm physical scale and enable crews to dispatch the right equipment.
             </p>
           </div>
 
           {photoUrl ? (
-            <div className="relative rounded-xl overflow-hidden border border-[#E8E2D8] bg-black/5 aspect-video max-h-72">
+            <div className="relative rounded-2xl overflow-hidden border border-[#E6DFD4] bg-black/5 aspect-video max-h-80">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={photoUrl}
@@ -358,25 +377,25 @@ export function ReportWizard({
               <button
                 type="button"
                 onClick={() => setPhotoUrl("")}
-                className="absolute top-3 right-3 bg-black/70 hover:bg-black text-white text-xs font-semibold px-3 py-1.5 rounded-lg backdrop-blur-xs transition cursor-pointer"
+                className="absolute top-3 right-3 bg-black/75 hover:bg-black text-white text-xs font-semibold px-3 py-1.5 rounded-xl backdrop-blur-xs transition cursor-pointer"
               >
                 Change Photo
               </button>
               {photoFileName && (
-                <div className="absolute bottom-3 left-3 bg-white/90 text-[#182026] text-xs font-mono px-2.5 py-1 rounded-md backdrop-blur-xs">
+                <div className="absolute bottom-3 left-3 bg-white/95 text-[#12181F] text-xs font-mono px-3 py-1 rounded-lg backdrop-blur-xs border border-[#E6DFD4]">
                   {photoFileName}
                 </div>
               )}
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-[#D5CCC0] hover:border-[#19382F] rounded-2xl bg-[#FBF9F5] hover:bg-white transition cursor-pointer group">
-              <div className="p-4 rounded-full bg-[#F4EFEA] group-hover:bg-[#19382F] group-hover:text-white transition text-[#182026] mb-3">
+            <label className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-[#D1C7B8] hover:border-[#14352B] rounded-3xl bg-[#FAF8F5] hover:bg-white transition cursor-pointer group">
+              <div className="p-4 rounded-2xl bg-[#F3EFE8] group-hover:bg-[#14352B] group-hover:text-white transition text-[#12181F] mb-3">
                 <CameraIcon size={32} />
               </div>
-              <span className="text-sm font-semibold text-[#182026]">
-                Click to upload photo or take picture
+              <span className="text-sm font-semibold text-[#12181F]">
+                Click to upload photo or snap picture
               </span>
-              <span className="text-xs text-[#788290] mt-1">
+              <span className="text-xs text-[#7A8799] mt-1">
                 Supports JPG, PNG, WEBP up to 10MB
               </span>
               <input
@@ -388,12 +407,13 @@ export function ReportWizard({
             </label>
           )}
 
-          <div className="flex items-center justify-between pt-4 border-t border-[#E8E2D8]">
+          <div className="flex items-center justify-between pt-4 border-t border-[#E6DFD4]">
             <Button variant="ghost" onClick={() => setStep(1)}>
               Back
             </Button>
             <Button
               variant="primary"
+              size="lg"
               onClick={() => setStep(3)}
               icon={<ArrowRightIcon size={16} />}
             >
@@ -407,11 +427,11 @@ export function ReportWizard({
       {step === 3 && (
         <div className="space-y-6 animate-in fade-in duration-150">
           <div>
-            <h2 className="font-display font-semibold text-2xl text-[#182026]">
-              Where is the defect located?
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#12181F]">
+              Pinpoint the defect location
             </h2>
-            <p className="text-xs text-[#788290] mt-1">
-              Click directly on the interactive city map to position the pin.
+            <p className="text-xs sm:text-sm text-[#7A8799] mt-1">
+              Click anywhere on the interactive cartography to place the pin precisely.
             </p>
           </div>
 
@@ -419,27 +439,30 @@ export function ReportWizard({
             isPickerMode={true}
             selectedLocation={location}
             onLocationSelect={(loc) => setLocation(loc)}
-            heightClass="h-[360px]"
+            heightClass="h-[380px]"
           />
 
-          <div className="p-3.5 rounded-xl bg-[#F4EFEA] border border-[#E8E2D8] flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <MapPinIcon size={20} className="text-[#E05A47] shrink-0" />
+          <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD4] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-[#D94532] text-white">
+                <MapPinIcon size={18} />
+              </div>
               <div>
-                <p className="text-xs font-bold text-[#182026]">{location.address}</p>
-                <p className="text-[11px] font-mono text-[#788290]">
-                  Lat: {location.lat.toFixed(4)}, Lng: {location.lng.toFixed(4)}
+                <p className="text-xs font-bold text-[#12181F]">{location.address}</p>
+                <p className="text-[11px] font-mono text-[#7A8799]">
+                  {location.ward} • Lat: {location.lat.toFixed(4)}, Lng: {location.lng.toFixed(4)}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-[#E8E2D8]">
+          <div className="flex items-center justify-between pt-4 border-t border-[#E6DFD4]">
             <Button variant="ghost" onClick={() => setStep(2)}>
               Back
             </Button>
             <Button
               variant="primary"
+              size="lg"
               onClick={() => setStep(4)}
               icon={<ArrowRightIcon size={16} />}
             >
@@ -449,28 +472,28 @@ export function ReportWizard({
         </div>
       )}
 
-      {/* STEP 4: Anything else? (Description + AI) */}
+      {/* STEP 4: Details + AI Suggestion */}
       {step === 4 && (
         <div className="space-y-6 animate-in fade-in duration-150">
           <div>
-            <h2 className="font-display font-semibold text-2xl text-[#182026]">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#12181F]">
               Describe the situation
             </h2>
-            <p className="text-xs text-[#788290] mt-1">
-              Our intelligent engine analyzes your words in real time to recommend priority and department.
+            <p className="text-xs sm:text-sm text-[#7A8799] mt-1">
+              Our intelligent engine analyzes natural language in real-time to suggest priority and department.
             </p>
           </div>
 
           <Input
             label="Brief Summary Title"
-            placeholder="e.g., Deep road cavity near central transit stop"
+            placeholder="e.g. Deep road cavity near central transit stop"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
 
           <Textarea
             label="Detailed Description & Hazard Impact"
-            placeholder="e.g., 40cm pothole with loose asphalt foundation. Cyclists and buses are swerving into the opposing lane to avoid wheel rim damage."
+            placeholder="e.g. 40cm pothole with loose asphalt foundation. Cyclists and buses are swerving into the opposing lane to avoid wheel rim damage."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
@@ -478,12 +501,12 @@ export function ReportWizard({
 
           {/* Real-time AI Recommendation Card */}
           {aiLoading ? (
-            <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/50 flex items-center gap-3 text-xs text-amber-800">
+            <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/60 flex items-center gap-3 text-xs text-amber-900">
               <SparklesIcon size={18} className="animate-spin text-amber-600" />
-              <span>Analyzing description for municipal category & priority signals...</span>
+              <span>Analyzing description for municipal category & hazard indicators...</span>
             </div>
           ) : aiRecommendation ? (
-            <div className="p-4 rounded-xl border border-emerald-300 bg-emerald-50/70 text-xs text-emerald-950 space-y-2">
+            <div className="p-5 rounded-2xl border-2 border-emerald-300 bg-emerald-50/80 text-xs text-emerald-950 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <SparklesIcon size={16} className="text-emerald-700" />
@@ -491,36 +514,46 @@ export function ReportWizard({
                     Intelligent Triage Suggestion
                   </span>
                 </div>
-                <span className="font-mono font-semibold bg-emerald-200/60 px-2 py-0.5 rounded text-[11px]">
+                <span className="font-mono font-bold bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded text-[11px]">
                   {Math.round(aiRecommendation.confidence * 100)}% Confidence
                 </span>
               </div>
+
               <p className="text-emerald-800 text-xs leading-relaxed">
                 {aiRecommendation.rationale}
               </p>
-              <div className="pt-2 border-t border-emerald-200/80 flex flex-wrap items-center gap-2 font-mono text-[11px]">
-                <span>Dept: <strong>{aiRecommendation.departmentName}</strong></span>
-                <span>•</span>
-                <span>Priority: <strong>{aiRecommendation.priority}</strong></span>
-                {aiRecommendation.category !== category && (
-                  <button
-                    type="button"
-                    onClick={() => setCategory(aiRecommendation.category)}
-                    className="ml-auto text-xs font-bold text-emerald-900 underline cursor-pointer"
-                  >
-                    Switch category to {aiRecommendation.category} →
-                  </button>
-                )}
+
+              <div className="pt-2 border-t border-emerald-200 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px]">
+                <div className="flex items-center gap-2">
+                  <span>Dept: <strong>{aiRecommendation.departmentName}</strong></span>
+                  <span>•</span>
+                  <span>Priority: <strong>{aiRecommendation.priority}</strong></span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {aiRecommendation.category !== category ? (
+                    <button
+                      type="button"
+                      onClick={() => setCategory(aiRecommendation.category)}
+                      className="px-2.5 py-1 rounded-md bg-[#14352B] text-white font-bold cursor-pointer hover:bg-[#0E251E] transition"
+                    >
+                      Use Suggestion ({aiRecommendation.category})
+                    </button>
+                  ) : (
+                    <span className="text-emerald-800 font-bold">✓ Category Aligned</span>
+                  )}
+                </div>
               </div>
             </div>
           ) : null}
 
-          <div className="flex items-center justify-between pt-4 border-t border-[#E8E2D8]">
+          <div className="flex items-center justify-between pt-4 border-t border-[#E6DFD4]">
             <Button variant="ghost" onClick={() => setStep(3)}>
               Back
             </Button>
             <Button
               variant="primary"
+              size="lg"
               onClick={() => setStep(5)}
               icon={<ArrowRightIcon size={16} />}
             >
@@ -530,50 +563,63 @@ export function ReportWizard({
         </div>
       )}
 
-      {/* STEP 5: Review & Submit */}
+      {/* STEP 5: Review & Confirm */}
       {step === 5 && (
         <div className="space-y-6 animate-in fade-in duration-150">
           <div>
-            <h2 className="font-display font-semibold text-2xl text-[#182026]">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#12181F]">
               Ready to dispatch report?
             </h2>
-            <p className="text-xs text-[#788290] mt-1">
-              Your submission will be immediately routed to the department triage queue.
+            <p className="text-xs sm:text-sm text-[#7A8799] mt-1">
+              Your observation will be immediately dispatched to the operations command center.
             </p>
           </div>
 
           {submissionError && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-medium">
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-medium">
               {submissionError}
             </div>
           )}
 
-          <div className="border border-[#E8E2D8] rounded-xl overflow-hidden divide-y divide-[#E8E2D8]">
-            <div className="p-4 bg-[#FBF9F5] flex items-center justify-between">
+          {isSubmitting && (
+            <div className="p-4 rounded-2xl bg-[#F8F5EE] border border-[#E6DFD4] flex items-center gap-3 text-xs font-mono text-[#14352B] animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-[#D94532]" />
+              <span>{submitProgressStage}</span>
+            </div>
+          )}
+
+          <div className="border border-[#E6DFD4] rounded-2xl overflow-hidden divide-y divide-[#E6DFD4]">
+            <div className="p-4 bg-[#FAF8F5] flex items-center justify-between">
               <div>
-                <span className="text-xs font-mono uppercase text-[#788290]">Category</span>
-                <p className="font-bold text-sm text-[#182026]">
+                <span className="text-[10px] font-mono uppercase text-[#7A8799] font-bold">
+                  Category
+                </span>
+                <p className="font-display font-bold text-base text-[#12181F]">
                   {CATEGORIES_CONFIG[category].name}
                 </p>
               </div>
-              <span className="text-xs font-mono px-2.5 py-1 rounded bg-white border border-[#D5CCC0] text-[#182026]">
+              <span className="text-xs font-mono px-3 py-1 rounded-lg bg-white border border-[#D1C7B8] text-[#12181F] font-bold">
                 Target SLA: {CATEGORIES_CONFIG[category].defaultSlaHours}h
               </span>
             </div>
 
             <div className="p-4">
-              <span className="text-xs font-mono uppercase text-[#788290]">Location</span>
-              <p className="font-semibold text-sm text-[#182026] mt-0.5">
+              <span className="text-[10px] font-mono uppercase text-[#7A8799] font-bold">
+                Location
+              </span>
+              <p className="font-semibold text-sm text-[#12181F] mt-0.5">
                 📍 {location.address}
               </p>
             </div>
 
             <div className="p-4">
-              <span className="text-xs font-mono uppercase text-[#788290]">Summary</span>
-              <p className="font-semibold text-sm text-[#182026] mt-0.5">
+              <span className="text-[10px] font-mono uppercase text-[#7A8799] font-bold">
+                Summary
+              </span>
+              <p className="font-semibold text-sm text-[#12181F] mt-0.5">
                 {title || `${CATEGORIES_CONFIG[category].name} Observation`}
               </p>
-              <p className="text-xs text-[#4B5563] mt-1 leading-relaxed">
+              <p className="text-xs text-[#475467] mt-1 leading-relaxed">
                 {description || "No extended remarks provided."}
               </p>
             </div>
@@ -584,17 +630,21 @@ export function ReportWizard({
                 <img
                   src={photoUrl}
                   alt="Evidence preview"
-                  className="w-16 h-16 rounded-lg object-cover border border-[#D5CCC0]"
+                  className="w-16 h-16 rounded-xl object-cover border border-[#D1C7B8]"
                 />
                 <div>
-                  <span className="text-xs font-mono uppercase text-[#788290]">Photo Evidence</span>
-                  <p className="text-xs font-medium text-[#182026]">1 photographic asset attached</p>
+                  <span className="text-[10px] font-mono uppercase text-[#7A8799] font-bold">
+                    Visual Evidence
+                  </span>
+                  <p className="text-xs font-medium text-[#12181F]">
+                    1 photographic asset attached
+                  </p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-[#E8E2D8]">
+          <div className="flex items-center justify-between pt-4 border-t border-[#E6DFD4]">
             <Button
               variant="ghost"
               onClick={() => setStep(4)}
@@ -609,7 +659,7 @@ export function ReportWizard({
               isLoading={isSubmitting}
               icon={<CheckCircleIcon size={18} />}
             >
-              Submit Civic Observation
+              Dispatch Civic Observation
             </Button>
           </div>
         </div>

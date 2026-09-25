@@ -2,22 +2,22 @@
 
 @layer base {
   :root {
-    --surface-canvas: #FBF9F5;
+    --surface-canvas: #FAF8F5;
     --surface-card: #FFFFFF;
-    --surface-subtle: #F4EFEA;
-    --surface-muted: #EBE4DC;
-    --border-subtle: #E8E2D8;
-    --border-strong: #D5CCC0;
+    --surface-subtle: #F3EFE8;
+    --surface-sand: #ECE6DC;
+    --border-subtle: #E6DFD4;
+    --border-strong: #D1C7B8;
     
-    --text-primary: #182026;
-    --text-secondary: #4B5563;
-    --text-muted: #788290;
+    --text-primary: #12181F;
+    --text-secondary: #475467;
+    --text-muted: #7A8799;
     
-    --civic-terracotta: #E05A47;
-    --civic-terracotta-hover: #CD4735;
-    --civic-pine: #19382F;
-    --civic-pine-hover: #122821;
-    --civic-cobalt: #244B5C;
+    --civic-terracotta: #D94532;
+    --civic-terracotta-hover: #C23927;
+    --civic-pine: #14352B;
+    --civic-pine-hover: #0E251E;
+    --civic-cobalt: #1E4E68;
     --civic-ochre: #D97706;
     --civic-moss: #15803D;
 
@@ -29,6 +29,10 @@
     border-color: var(--border-subtle);
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: var(--surface-canvas);
     color: var(--text-primary);
@@ -36,17 +40,35 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
+    text-rendering: optimizeLegibility;
   }
 
   ::selection {
     background-color: #F8D7D2;
     color: #8C2314;
   }
+
+  /* Custom subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--surface-canvas);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
 }
 
 /* Custom Typography Utilities */
 .font-display {
   font-family: var(--font-fraunces), serif;
+  font-optical-sizing: auto;
 }
 
 .font-sans {
@@ -57,7 +79,7 @@
   font-family: var(--font-mono), monospace;
 }
 
-/* Subtle architectural hairline borders */
+/* Architectural borders & card elevations */
 .civic-border {
   border: 1px solid var(--border-subtle);
 }
@@ -69,14 +91,55 @@
 .civic-card {
   background-color: var(--surface-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  box-shadow: 0 2px 8px -2px rgba(24, 32, 38, 0.04), 0 1px 3px rgba(24, 32, 38, 0.02);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(18, 24, 31, 0.03), 0 4px 12px -2px rgba(18, 24, 31, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.civic-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 16px -2px rgba(18, 24, 31, 0.08), 0 2px 6px -1px rgba(18, 24, 31, 0.04);
+}
+
+/* Subtle architectural coordinate grid */
+.bg-civic-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(209, 199, 184, 0.2) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(209, 199, 184, 0.2) 1px, transparent 1px);
+}
+
+/* Tactile paper texture */
+.bg-paper-warm {
+  background-color: #FAF8F5;
+  background-image: radial-gradient(rgba(20, 53, 43, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 
 /* Accessible focus ring */
 *:focus-visible {
   outline: 2px solid var(--civic-pine);
   outline-offset: 2px;
+}
+
+/* Pulse keyframes for living city telemetry */
+@keyframes civic-radar-pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+.animate-radar-pulse {
+  animation: civic-radar-pulse 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
 }
 
 /* Reduced motion preference */

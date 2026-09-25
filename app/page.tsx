@@ -14,9 +14,12 @@ import {
   TruckIcon,
   MapPinIcon,
   CameraIcon,
+  StarIcon,
 } from "@/components/icons";
 import { InteractiveCityMap } from "@/components/map/InteractiveCityMap";
 import { SplitBeforeAfter } from "@/components/citizen/SplitBeforeAfter";
+import { CivicPulseVisual } from "@/components/civic/CivicPulseVisual";
+import { LifecycleStorytelling } from "@/components/landing/LifecycleStorytelling";
 import { ToastProvider } from "@/components/ui/Toast";
 
 export const revalidate = 0;
@@ -25,14 +28,14 @@ export default async function LandingPage() {
   const currentUser = await getCurrentUser();
 
   // Fetch real-time issues and statistics from the database
-  const [totalIssues, resolvedIssues, verifiedIssues, criticalCount, sampleIssues] =
+  const [totalIssues, resolvedIssues, verifiedIssues, criticalCount, sampleIssues, verifiedShowcase] =
     await Promise.all([
       db.issue.count(),
       db.issue.count({ where: { status: "RESOLVED" } }),
       db.issue.count({ where: { status: "VERIFIED" } }),
       db.issue.count({ where: { priority: "CRITICAL" } }),
       db.issue.findMany({
-        take: 8,
+        take: 10,
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
@@ -48,6 +51,17 @@ export default async function LandingPage() {
           ward: true,
         },
       }),
+      db.issue.findMany({
+        where: {
+          OR: [{ status: "VERIFIED" }, { status: "RESOLVED" }],
+        },
+        take: 3,
+        orderBy: { updatedAt: "desc" },
+        include: {
+          department: true,
+          crew: true,
+        },
+      }),
     ]);
 
   const verificationRate =
@@ -57,48 +71,50 @@ export default async function LandingPage() {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen flex flex-col bg-[#FBF9F5] text-[#182026]">
+      <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#12181F]">
         <Navbar currentUser={currentUser} />
 
         <main id="main-content" className="flex-1">
           {/* ══════════════════════════════════════════════════════════
-              01 — HERO: "Civic problems should have a visible ending."
+              01 — HERO: Editorial Civic Modernism
               ══════════════════════════════════════════════════════════ */}
-          <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-[#E8E2D8]">
+          <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-[#E6DFD4] bg-civic-grid">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-                {/* Left Column: Editorial Vision */}
+                {/* Left Column: Typographic Narrative */}
                 <div className="lg:col-span-7 space-y-6">
-                  {/* Municipal Telemetry Tag */}
-                  <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#F4EFEA] border border-[#E8E2D8] text-xs font-semibold text-[#182026]">
-                    <span className="w-2 h-2 rounded-full bg-[#E05A47] animate-pulse" />
+                  {/* Living City Telemetry Tag */}
+                  <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white border border-[#E6DFD4] text-xs font-semibold text-[#12181F] shadow-2xs">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#D94532] animate-ping" />
                     <span className="font-mono text-[11px] uppercase tracking-wider">
                       Municipal Observability Engine
                     </span>
-                    <span className="text-[#D5CCC0]">•</span>
-                    <span className="text-[#788290]">Ward Telemetry Active</span>
+                    <span className="text-[#D1C7B8]">•</span>
+                    <span className="text-[#475467] font-mono text-[11px]">
+                      12 Wards Connected
+                    </span>
                   </div>
 
-                  <h1 className="font-display font-bold text-4xl sm:text-6xl lg:text-7xl leading-[1.08] tracking-tight text-[#182026]">
+                  <h1 className="font-display font-bold text-4xl sm:text-6xl lg:text-7xl leading-[1.06] tracking-tight text-[#12181F]">
                     Civic problems <br />
                     should have a <br />
-                    <span className="text-[#E05A47] italic font-normal">
+                    <span className="text-[#D94532] italic font-normal">
                       visible ending.
                     </span>
                   </h1>
 
-                  <p className="font-sans text-base sm:text-lg text-[#4B5563] max-w-xl leading-relaxed">
-                    Municipal defects should never disappear into a bureaucratic
-                    black hole. CivicFlow transforms resident observations into
-                    auditable, field-dispatched work orders—closing the loop with{" "}
-                    <strong>citizen-verified resolution</strong>.
+                  <p className="font-sans text-base sm:text-lg text-[#475467] max-w-xl leading-relaxed">
+                    Municipal defects should not disappear into an administrative
+                    black hole. CivicFlow turns citizen observations into auditable,
+                    dispatched work orders—closing the loop with{" "}
+                    <strong className="text-[#12181F] font-semibold">citizen-verified resolution</strong>.
                   </p>
 
                   {/* Dual Action CTAs */}
                   <div className="pt-2 flex flex-wrap items-center gap-4">
                     <Link
                       href="/report"
-                      className="bg-[#E05A47] hover:bg-[#CC4836] text-white font-semibold text-sm sm:text-base px-6 py-3.5 rounded-xl shadow-sm hover:shadow transition flex items-center gap-2.5 cursor-pointer"
+                      className="bg-[#D94532] hover:bg-[#C23927] text-white font-semibold text-sm sm:text-base px-6 py-3.5 rounded-xl shadow-sm hover:shadow transition flex items-center gap-2.5 cursor-pointer"
                     >
                       <RoadIcon size={18} />
                       Report an Issue
@@ -106,79 +122,87 @@ export default async function LandingPage() {
 
                     <Link
                       href="/#live-map"
-                      className="bg-white hover:bg-[#F4EFEA] text-[#182026] border border-[#D5CCC0] font-semibold text-sm sm:text-base px-6 py-3.5 rounded-xl shadow-2xs hover:border-[#182026] transition flex items-center gap-2 cursor-pointer"
+                      className="bg-white hover:bg-[#F3EFE8] text-[#12181F] border border-[#D1C7B8] font-semibold text-sm sm:text-base px-6 py-3.5 rounded-xl shadow-2xs hover:border-[#12181F] transition flex items-center gap-2 cursor-pointer"
                     >
-                      <MapPinIcon size={18} className="text-[#244B5C]" />
+                      <MapPinIcon size={18} className="text-[#1E4E68]" />
                       Explore City Map
                     </Link>
 
                     <Link
                       href="/authority/dashboard"
-                      className="text-xs font-semibold text-[#19382F] hover:underline ml-2 flex items-center gap-1"
+                      className="text-xs font-semibold text-[#14352B] hover:underline ml-2 flex items-center gap-1.5"
                     >
                       <ShieldCheckIcon size={16} />
                       Operations Command →
                     </Link>
                   </div>
 
-                  {/* Real-time civic health metrics bar */}
-                  <div className="pt-6 grid grid-cols-3 gap-4 border-t border-[#E8E2D8] max-w-lg">
+                  {/* High-density real-time metrics ticker */}
+                  <div className="pt-6 grid grid-cols-3 sm:grid-cols-4 gap-4 border-t border-[#E6DFD4] max-w-xl">
                     <div>
-                      <div className="font-display font-bold text-2xl sm:text-3xl text-[#182026]">
+                      <div className="font-display font-bold text-2xl sm:text-3xl text-[#12181F]">
                         {totalIssues}
                       </div>
-                      <div className="text-[11px] font-mono uppercase tracking-wider text-[#788290] mt-0.5">
-                        Tracked Incidents
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-[#7A8799] mt-0.5 font-semibold">
+                        Active Reports
                       </div>
                     </div>
                     <div>
-                      <div className="font-display font-bold text-2xl sm:text-3xl text-[#19382F]">
+                      <div className="font-display font-bold text-2xl sm:text-3xl text-[#14352B]">
                         26.4h
                       </div>
-                      <div className="text-[11px] font-mono uppercase tracking-wider text-[#788290] mt-0.5">
-                        Average Resolution
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-[#7A8799] mt-0.5 font-semibold">
+                        Average SLA
                       </div>
                     </div>
                     <div>
-                      <div className="font-display font-bold text-2xl sm:text-3xl text-[#E05A47]">
+                      <div className="font-display font-bold text-2xl sm:text-3xl text-[#D94532]">
                         {verificationRate}%
                       </div>
-                      <div className="text-[11px] font-mono uppercase tracking-wider text-[#788290] mt-0.5">
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-[#7A8799] mt-0.5 font-semibold">
                         Citizen Verified
+                      </div>
+                    </div>
+                    <div className="hidden sm:block">
+                      <div className="font-display font-bold text-2xl sm:text-3xl text-[#1E4E68]">
+                        5 Units
+                      </div>
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-[#7A8799] mt-0.5 font-semibold">
+                        Field Crews
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Right Column: Interactive Real-World Evidence Hero Asset */}
+                {/* Right Column: Hero Visual Asset (Interactive Split-Slider) */}
                 <div className="lg:col-span-5 relative">
-                  <div className="relative rounded-2xl overflow-hidden border border-[#E8E2D8] bg-white shadow-xl p-3">
-                    <div className="flex items-center justify-between pb-3 px-2 border-b border-[#E8E2D8] text-xs font-mono text-[#788290]">
-                      <span className="font-bold text-[#182026]">
-                        LIVE VERIFICATION SLIDER
+                  <div className="relative rounded-3xl overflow-hidden border border-[#E6DFD4] bg-white shadow-xl p-4">
+                    <div className="flex items-center justify-between pb-3 px-1 border-b border-[#E6DFD4] text-xs font-mono text-[#7A8799]">
+                      <span className="font-bold text-[#12181F]">
+                        LIVE CITIZEN RESOLUTION PROOF
                       </span>
-                      <span>#CF-1001 • ELM STREET</span>
+                      <span>#CF-1001 • WARD 4</span>
                     </div>
 
-                    <div className="mt-3">
+                    <div className="mt-3.5">
                       <SplitBeforeAfter
                         beforeUrl="https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1000&q=80"
                         afterUrl="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=1000&q=80"
                         beforeLabel="Defect: 40cm Pothole"
-                        afterLabel="Verified: Cured Asphalt"
+                        afterLabel="Verified: Cured Asphalt Patch"
                       />
                     </div>
 
-                    <div className="p-3 bg-[#FBF9F5] rounded-xl border border-[#E8E2D8] mt-3 flex items-center justify-between text-xs">
+                    <div className="p-3.5 bg-[#FAF8F5] rounded-2xl border border-[#E6DFD4] mt-3.5 flex items-center justify-between text-xs">
                       <div>
-                        <p className="font-bold text-[#182026]">
+                        <p className="font-bold text-[#12181F]">
                           Road Patching Crew Bravo
                         </p>
-                        <p className="text-[11px] text-[#788290]">
-                          Dispatched in 4h • Sealed by Citizen Maya Chen
+                        <p className="text-[11px] text-[#7A8799] font-mono mt-0.5">
+                          Dispatched in 4h • Confirmed by Maya Chen
                         </p>
                       </div>
-                      <span className="px-2.5 py-1 rounded bg-[#19382F] text-white text-[10px] font-mono uppercase font-bold tracking-wider">
+                      <span className="px-2.5 py-1 rounded-lg bg-[#14352B] text-white text-[10px] font-mono uppercase font-bold tracking-wider">
                         ★ 5.0 Verified
                       </span>
                     </div>
@@ -189,92 +213,118 @@ export default async function LandingPage() {
           </section>
 
           {/* ══════════════════════════════════════════════════════════
-              02 — THE CIVIC BLACK HOLE VS CIVICFLOW (Visual Narrative)
+              02 — SIGNATURE CIVIC VISUAL: Civic Pulse Constellation
               ══════════════════════════════════════════════════════════ */}
-          <section className="py-20 lg:py-24 bg-[#F4EFEA] border-b border-[#E8E2D8]">
+          <section className="py-20 lg:py-24 border-b border-[#E6DFD4] bg-[#FAF8F5]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+              <div className="max-w-2xl space-y-2">
+                <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#D94532]">
+                  Living Civic Telemetry
+                </span>
+                <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#12181F]">
+                  The Civic Pulse: City operations in real time
+                </h2>
+                <p className="text-sm text-[#475467] leading-relaxed">
+                  Every civic report is a living coordinate. Node size reflects
+                  severity, pulse frequency denotes priority, and verified signoffs
+                  settle into a calm, permanent state.
+                </p>
+              </div>
+
+              {/* The Civic Pulse Visual */}
+              <CivicPulseVisual heightClass="h-[520px]" />
+            </div>
+          </section>
+
+          {/* ══════════════════════════════════════════════════════════
+              03 — THE CIVIC BLACK HOLE VS CIVICFLOW (Visual Narrative)
+              ══════════════════════════════════════════════════════════ */}
+          <section className="py-20 lg:py-24 bg-[#F3EFE8] border-b border-[#E6DFD4]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-                <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#E05A47]">
-                  The Core Problem
+                <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#D94532]">
+                  The Core Friction
                 </span>
-                <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#182026]">
-                  Why municipal reporting is broken
+                <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#12181F]">
+                  Why municipal reporting fails today
                 </h2>
-                <p className="text-sm text-[#4B5563] leading-relaxed">
-                  Citizens do not lack awareness; they lack proof that their civic
-                  effort results in tangible physical change.
+                <p className="text-sm text-[#475467] leading-relaxed">
+                  Citizens don&apos;t lack awareness; they lack confidence that their
+                  observation will ever translate into physical repair.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Traditional 311 Black Hole */}
-                <div className="bg-white/80 border border-[#E8E2D8] rounded-2xl p-8 space-y-6 relative opacity-85">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-gray-100 text-gray-700 text-xs font-mono font-bold">
+                <div className="bg-white/80 border border-[#E6DFD4] rounded-3xl p-8 space-y-6 opacity-85">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-rose-50 text-rose-800 text-xs font-mono font-bold border border-rose-200">
                     ✕ The Traditional 311 Black Hole
                   </div>
 
-                  <ul className="space-y-4 text-xs sm:text-sm text-[#4B5563]">
+                  <ul className="space-y-4 text-xs sm:text-sm text-[#475467]">
                     <li className="flex items-start gap-3">
                       <span className="text-rose-500 font-bold">―</span>
                       <span>
-                        <strong>4-Page Clunky PDF Forms:</strong> Demands ward numbers,
-                        jurisdiction codes, and legal declarations before submission.
+                        <strong className="text-[#12181F]">4-Page Clunky Forms:</strong> Requires
+                        district codes, tax lot numbers, and legal declarations before
+                        even accepting a photo.
                       </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-rose-500 font-bold">―</span>
                       <span>
-                        <strong>Misassembled Bureaucratic Routing:</strong> Potholes
-                        bounce between state highways and city transit for weeks.
+                        <strong className="text-[#12181F]">Misassembled Routing:</strong> A road
+                        defect bounces between state highways, city transit, and district utility
+                        departments for weeks.
                       </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-rose-500 font-bold">―</span>
                       <span>
-                        <strong>Ghost Resolutions:</strong> Work tickets marked &ldquo;Closed&rdquo;
-                        in back-office databases without physical work ever taking place.
+                        <strong className="text-[#12181F]">Ghost Resolutions:</strong> Work tickets
+                        marked &ldquo;Closed&rdquo; in backend enterprise systems without physical work ever taking place.
                       </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="text-rose-500 font-bold">―</span>
                       <span>
-                        <strong>Total Citizen Apathy:</strong> 74% of residents never report
-                        a second issue after experiencing the silent void.
+                        <strong className="text-[#12181F]">Total Citizen Apathy:</strong> 74% of
+                        residents never submit another report after experiencing the silent void.
                       </span>
                     </li>
                   </ul>
                 </div>
 
-                {/* The CivicFlow Loop */}
-                <div className="bg-white border-2 border-[#19382F] rounded-2xl p-8 space-y-6 relative shadow-md">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#19382F] text-white text-xs font-mono font-bold">
+                {/* The CivicFlow Verified Loop */}
+                <div className="bg-white border-2 border-[#14352B] rounded-3xl p-8 space-y-6 shadow-md">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#14352B] text-white text-xs font-mono font-bold">
                     ✓ The CivicFlow Verified Loop
                   </div>
 
-                  <ul className="space-y-4 text-xs sm:text-sm text-[#182026]">
+                  <ul className="space-y-4 text-xs sm:text-sm text-[#12181F]">
                     <li className="flex items-start gap-3">
-                      <span className="text-[#15803D] font-bold">✓</span>
+                      <span className="text-emerald-600 font-bold text-base">✓</span>
                       <span>
                         <strong>Rapid 60-Second Capture:</strong> Snap photo, tap map pin,
                         and type plain English. Zero bureaucratic jargon.
                       </span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-[#15803D] font-bold">✓</span>
+                      <span className="text-emerald-600 font-bold text-base">✓</span>
                       <span>
-                        <strong>AI Department Routing:</strong> Intelligent natural
-                        language triage matches keywords to exact municipal crews.
+                        <strong>AI Department Routing:</strong> Intelligent natural language
+                        triage matches keywords to exact municipal crews instantly.
                       </span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-[#15803D] font-bold">✓</span>
+                      <span className="text-emerald-600 font-bold text-base">✓</span>
                       <span>
-                        <strong>Mandatory Photo Proof:</strong> Field crews attach before/after
-                        photographic evidence before any ticket is marked resolved.
+                        <strong>Mandatory Photo Proof:</strong> Field crews must attach
+                        photographic proof before an issue can be marked resolved.
                       </span>
                     </li>
                     <li className="flex items-start gap-3">
-                      <span className="text-[#15803D] font-bold">✓</span>
+                      <span className="text-emerald-600 font-bold text-base">✓</span>
                       <span>
                         <strong>Citizen Verification Seal:</strong> The ticket is only closed
                         when the reporting resident inspects the repair and confirms.
@@ -287,127 +337,48 @@ export default async function LandingPage() {
           </section>
 
           {/* ══════════════════════════════════════════════════════════
-              03 — HOW IT WORKS: The 5-Stage Civic Lifecycle
+              04 — HOW CIVICFLOW WORKS: 5-Stage Interactive Blueprint
               ══════════════════════════════════════════════════════════ */}
-          <section id="how-it-works" className="py-20 lg:py-24 border-b border-[#E8E2D8]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-                <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#244B5C]">
+          <section id="how-it-works" className="py-20 lg:py-24 border-b border-[#E6DFD4]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+              <div className="text-center max-w-2xl mx-auto space-y-3">
+                <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#1E4E68]">
                   Operational Blueprint
                 </span>
-                <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#182026]">
+                <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#12181F]">
                   The 5-Stage Civic Lifecycle
                 </h2>
-                <p className="text-sm text-[#4B5563]">
-                  Report → Understand → Assign → Resolve → Verify
+                <p className="text-sm text-[#475467]">
+                  From citizen observation to verified resolution. Explore each stage interactively:
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
-                {/* Stage 1 */}
-                <div className="bg-white border border-[#E8E2D8] rounded-xl p-5 space-y-3 hover:border-[#19382F] transition">
-                  <div className="w-8 h-8 rounded-lg bg-[#F4EFEA] text-[#182026] flex items-center justify-center font-mono font-bold text-sm">
-                    01
-                  </div>
-                  <div className="text-[#E05A47]">
-                    <CameraIcon size={24} />
-                  </div>
-                  <h3 className="font-display font-semibold text-lg text-[#182026]">
-                    Capture
-                  </h3>
-                  <p className="text-xs text-[#4B5563] leading-relaxed">
-                    Resident snaps a photo and pinpoints the defect on the interactive city map.
-                  </p>
-                </div>
-
-                {/* Stage 2 */}
-                <div className="bg-white border border-[#E8E2D8] rounded-xl p-5 space-y-3 hover:border-[#19382F] transition">
-                  <div className="w-8 h-8 rounded-lg bg-[#F4EFEA] text-[#182026] flex items-center justify-center font-mono font-bold text-sm">
-                    02
-                  </div>
-                  <div className="text-[#D97706]">
-                    <SparklesIcon size={24} />
-                  </div>
-                  <h3 className="font-display font-semibold text-lg text-[#182026]">
-                    Understand
-                  </h3>
-                  <p className="text-xs text-[#4B5563] leading-relaxed">
-                    Intelligent NLP extracts hazard signals and suggests category, department, and priority.
-                  </p>
-                </div>
-
-                {/* Stage 3 */}
-                <div className="bg-white border border-[#E8E2D8] rounded-xl p-5 space-y-3 hover:border-[#19382F] transition">
-                  <div className="w-8 h-8 rounded-lg bg-[#F4EFEA] text-[#182026] flex items-center justify-center font-mono font-bold text-sm">
-                    03
-                  </div>
-                  <div className="text-[#244B5C]">
-                    <TruckIcon size={24} />
-                  </div>
-                  <h3 className="font-display font-semibold text-lg text-[#182026]">
-                    Assign
-                  </h3>
-                  <p className="text-xs text-[#4B5563] leading-relaxed">
-                    Supervisor reviews spatial clusters and dispatches specialized crews (e.g. Patching Unit Bravo).
-                  </p>
-                </div>
-
-                {/* Stage 4 */}
-                <div className="bg-white border border-[#E8E2D8] rounded-xl p-5 space-y-3 hover:border-[#19382F] transition">
-                  <div className="w-8 h-8 rounded-lg bg-[#F4EFEA] text-[#182026] flex items-center justify-center font-mono font-bold text-sm">
-                    04
-                  </div>
-                  <div className="text-[#15803D]">
-                    <CheckCircleIcon size={24} />
-                  </div>
-                  <h3 className="font-display font-semibold text-lg text-[#182026]">
-                    Resolve
-                  </h3>
-                  <p className="text-xs text-[#4B5563] leading-relaxed">
-                    Crews physically repair defect and upload required post-remediation photographic proof.
-                  </p>
-                </div>
-
-                {/* Stage 5 */}
-                <div className="bg-[#19382F] text-white rounded-xl p-5 space-y-3 shadow-md">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center font-mono font-bold text-sm">
-                    05
-                  </div>
-                  <div className="text-[#E05A47]">
-                    <ShieldCheckIcon size={24} />
-                  </div>
-                  <h3 className="font-display font-semibold text-lg text-white">
-                    Verify
-                  </h3>
-                  <p className="text-xs text-white/80 leading-relaxed">
-                    Citizen inspects the repair. One click confirms and seals the work order, or reopens if defect persists.
-                  </p>
-                </div>
-              </div>
+              {/* Interactive Lifecycle Storytelling Component */}
+              <LifecycleStorytelling />
             </div>
           </section>
 
           {/* ══════════════════════════════════════════════════════════
-              04 — LIVE ISSUE VISUALIZATION: Interactive City Map
+              05 — LIVE GEOSPATIAL CITY OPERATIONS MAP
               ══════════════════════════════════════════════════════════ */}
-          <section id="live-map" className="py-20 lg:py-24 bg-[#F7F4EE] border-b border-[#E8E2D8]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+          <section id="live-map" className="py-20 lg:py-24 bg-[#F8F5EE] border-b border-[#E6DFD4]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#E05A47]">
-                    Geospatial Telemetry
+                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#D94532]">
+                    Geospatial Cartography
                   </span>
-                  <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#182026] mt-1">
+                  <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#12181F] mt-1">
                     Live Municipal Operations Map
                   </h2>
-                  <p className="text-sm text-[#4B5563] mt-1">
-                    Interactive cartography displaying reported defects, triage status, and active crews across city wards.
+                  <p className="text-sm text-[#475467] mt-1">
+                    Interactive city grid showing active incidents, field crews, and verified repairs across 12 wards.
                   </p>
                 </div>
 
                 <Link
                   href="/report"
-                  className="bg-[#E05A47] hover:bg-[#CC4836] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2 self-start md:self-auto cursor-pointer"
+                  className="bg-[#D94532] hover:bg-[#C23927] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2 self-start md:self-auto cursor-pointer"
                 >
                   <MapPinIcon size={16} />
                   Report at Your Coordinates
@@ -417,72 +388,158 @@ export default async function LandingPage() {
               {/* Vector City Map Component */}
               <InteractiveCityMap
                 issues={sampleIssues}
-                heightClass="h-[520px]"
+                heightClass="h-[560px]"
               />
             </div>
           </section>
 
           {/* ══════════════════════════════════════════════════════════
-              05 — CIVIC TRANSPARENCY & DISTRICT SLA
+              06 — VERIFIED RESOLUTIONS SHOWCASE
               ══════════════════════════════════════════════════════════ */}
-          <section id="transparency" className="py-20 lg:py-24 border-b border-[#E8E2D8]">
+          <section className="py-20 lg:py-24 border-b border-[#E6DFD4] bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#14352B]">
+                    Community Signoffs
+                  </span>
+                  <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#12181F] mt-1">
+                    Recently Verified by Residents
+                  </h2>
+                  <p className="text-sm text-[#475467] mt-1">
+                    Defects where physical repairs were inspected, approved, and sealed by citizens.
+                  </p>
+                </div>
+
+                <Link
+                  href="/citizen/dashboard"
+                  className="text-xs font-semibold text-[#D94532] hover:underline flex items-center gap-1 font-mono"
+                >
+                  View All Verified Tickets →
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {verifiedShowcase.map((issue) => (
+                  <div
+                    key={issue.id}
+                    className="border border-[#E6DFD4] rounded-2xl p-5 bg-[#FAF8F5] space-y-4 hover:border-[#14352B] transition shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="font-bold text-[#12181F]">
+                        {issue.ticketNumber}
+                      </span>
+                      <span className="px-2 py-0.5 rounded bg-[#14352B] text-white text-[10px] font-bold uppercase">
+                        {issue.status}
+                      </span>
+                    </div>
+
+                    <div className="relative rounded-xl overflow-hidden border border-[#E6DFD4] aspect-video">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={issue.resolutionPhotoUrl || issue.photoUrl}
+                        alt={issue.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-2 left-2 bg-[#14352B]/90 backdrop-blur-xs text-white text-[10px] font-mono px-2 py-0.5 rounded font-bold">
+                        ✓ Field Proof Verified
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-display font-semibold text-base text-[#12181F] line-clamp-1">
+                        {issue.title}
+                      </h4>
+                      <p className="text-xs text-[#7A8799] mt-0.5 font-mono">
+                        📍 {issue.address}
+                      </p>
+                    </div>
+
+                    {issue.citizenFeedback && (
+                      <p className="text-xs text-[#475467] italic bg-white p-3 rounded-xl border border-[#E6DFD4]">
+                        &ldquo;{issue.citizenFeedback}&rdquo;
+                      </p>
+                    )}
+
+                    <div className="pt-2 border-t border-[#E6DFD4] flex items-center justify-between text-xs text-[#7A8799]">
+                      <span className="font-mono text-[11px]">
+                        {issue.crew ? issue.crew.name : "Municipal Crew"}
+                      </span>
+                      {issue.citizenRating && (
+                        <div className="flex items-center gap-0.5 text-amber-500">
+                          {[...Array(issue.citizenRating)].map((_, i) => (
+                            <StarIcon key={i} size={14} fill="#F59E0B" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ══════════════════════════════════════════════════════════
+              07 — RADICAL TRANSPARENCY & DIRECT DEMO ACCESS
+              ══════════════════════════════════════════════════════════ */}
+          <section id="transparency" className="py-20 lg:py-24 border-b border-[#E6DFD4] bg-[#FAF8F5]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 <div className="lg:col-span-6 space-y-6">
-                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#19382F]">
+                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#14352B]">
                     Radical Transparency
                   </span>
-                  <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#182026]">
-                    Every municipal dollar, work order, and repair held to public audit.
+                  <h2 className="font-display font-bold text-3xl sm:text-4xl text-[#12181F]">
+                    Every work order, crew dispatch, and dollar held to open audit.
                   </h2>
-                  <p className="text-sm text-[#4B5563] leading-relaxed">
+                  <p className="text-sm text-[#475467] leading-relaxed">
                     By making the civic timeline visible from submission to citizen
                     signoff, CivicFlow eliminates the gap between budget allocations
                     and street reality.
                   </p>
 
                   <div className="space-y-3 pt-2">
-                    <div className="p-4 rounded-xl border border-[#E8E2D8] bg-white flex items-center justify-between">
+                    <div className="p-4 rounded-xl border border-[#E6DFD4] bg-white flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <ClockIcon size={20} className="text-[#244B5C]" />
+                        <ClockIcon size={20} className="text-[#1E4E68]" />
                         <div>
-                          <p className="text-xs font-bold text-[#182026]">
+                          <p className="text-xs font-bold text-[#12181F]">
                             Public Works SLA Adherence
                           </p>
-                          <p className="text-[11px] text-[#788290]">
+                          <p className="text-[11px] text-[#7A8799]">
                             Target: 48h • Actual: 31.2h Average
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
                         94.2% on-time
                       </span>
                     </div>
 
-                    <div className="p-4 rounded-xl border border-[#E8E2D8] bg-white flex items-center justify-between">
+                    <div className="p-4 rounded-xl border border-[#E6DFD4] bg-white flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <ShieldCheckIcon size={20} className="text-[#19382F]" />
+                        <ShieldCheckIcon size={20} className="text-[#14352B]" />
                         <div>
-                          <p className="text-xs font-bold text-[#182026]">
+                          <p className="text-xs font-bold text-[#12181F]">
                             Citizen Verification Fidelity
                           </p>
-                          <p className="text-[11px] text-[#788290]">
+                          <p className="text-[11px] text-[#7A8799]">
                             Reopened Rate: Under 2.8%
                           </p>
                         </div>
                       </div>
-                      <span className="text-xs font-mono font-bold text-[#19382F] bg-[#EBF3F0] px-2 py-0.5 rounded border border-[#D0E2DB]">
+                      <span className="text-xs font-mono font-bold text-[#14352B] bg-[#EBF3F0] px-2.5 py-1 rounded-md border border-[#D0E2DB]">
                         High Integrity
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="lg:col-span-6 bg-[#F4EFEA] border border-[#E8E2D8] rounded-2xl p-6 sm:p-8 space-y-6">
-                  <h3 className="font-display font-semibold text-xl text-[#182026]">
+                <div className="lg:col-span-6 bg-[#F3EFE8] border border-[#E6DFD4] rounded-3xl p-6 sm:p-8 space-y-6">
+                  <h3 className="font-display font-semibold text-xl text-[#12181F]">
                     Direct Demo Access
                   </h3>
-                  <p className="text-xs text-[#4B5563] leading-relaxed">
+                  <p className="text-xs text-[#475467] leading-relaxed">
                     Evaluate the end-to-end citizen reporting and authority triage
                     workflows with pre-seeded accounts. No password typing required.
                   </p>
@@ -490,30 +547,30 @@ export default async function LandingPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Link
                       href="/login?persona=citizen"
-                      className="p-4 rounded-xl bg-white border border-[#D5CCC0] hover:border-[#E05A47] hover:shadow-md transition text-left group"
+                      className="p-5 rounded-2xl bg-white border border-[#D1C7B8] hover:border-[#D94532] hover:shadow-md transition text-left group"
                     >
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#E05A47] font-bold">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#D94532] font-bold">
                         Role: Resident
                       </span>
-                      <h4 className="font-semibold text-sm text-[#182026] group-hover:text-[#E05A47] mt-1">
+                      <h4 className="font-semibold text-base text-[#12181F] group-hover:text-[#D94532] mt-1">
                         Maya Chen
                       </h4>
-                      <p className="text-xs text-[#788290] mt-0.5">
+                      <p className="text-xs text-[#7A8799] mt-1">
                         Inspect active reports & verify repairs
                       </p>
                     </Link>
 
                     <Link
                       href="/login?persona=authority"
-                      className="p-4 rounded-xl bg-white border border-[#D5CCC0] hover:border-[#19382F] hover:shadow-md transition text-left group"
+                      className="p-5 rounded-2xl bg-white border border-[#D1C7B8] hover:border-[#14352B] hover:shadow-md transition text-left group"
                     >
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#19382F] font-bold">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#14352B] font-bold">
                         Role: Supervisor
                       </span>
-                      <h4 className="font-semibold text-sm text-[#182026] group-hover:text-[#19382F] mt-1">
+                      <h4 className="font-semibold text-base text-[#12181F] group-hover:text-[#14352B] mt-1">
                         David O&apos;Connor
                       </h4>
-                      <p className="text-xs text-[#788290] mt-0.5">
+                      <p className="text-xs text-[#7A8799] mt-1">
                         Manage triage, dispatch, & proof
                       </p>
                     </Link>
@@ -524,11 +581,11 @@ export default async function LandingPage() {
           </section>
 
           {/* ══════════════════════════════════════════════════════════
-              06 — FINAL CTA: Civic Commitment
+              08 — FINAL CTA: Civic Commitment
               ══════════════════════════════════════════════════════════ */}
-          <section className="py-20 lg:py-24 bg-[#19382F] text-white">
+          <section className="py-20 lg:py-24 bg-[#14352B] text-white">
             <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-              <div className="inline-block p-3 rounded-2xl bg-white/10 text-[#E05A47] mb-2">
+              <div className="inline-block p-3.5 rounded-2xl bg-white/10 text-[#D94532] mb-2">
                 <CivicLogo size={36} />
               </div>
               <h2 className="font-display font-bold text-3xl sm:text-5xl tracking-tight text-white leading-tight">
@@ -542,7 +599,7 @@ export default async function LandingPage() {
               <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
                 <Link
                   href="/report"
-                  className="bg-[#E05A47] hover:bg-[#CC4836] text-white font-semibold text-sm sm:text-base px-8 py-4 rounded-xl shadow-lg transition flex items-center gap-2 cursor-pointer"
+                  className="bg-[#D94532] hover:bg-[#C23927] text-white font-semibold text-sm sm:text-base px-8 py-4 rounded-xl shadow-lg transition flex items-center gap-2 cursor-pointer"
                 >
                   <RoadIcon size={18} />
                   Start Citizen Report

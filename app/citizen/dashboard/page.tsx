@@ -61,26 +61,26 @@ export default async function CitizenDashboardPage() {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen flex flex-col bg-[#FBF9F5] text-[#182026]">
+      <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#12181F]">
         <Navbar currentUser={currentUser} />
 
         <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
           {/* Header Profile Ribbon */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E8E2D8]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E7E1D7]">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#19382F] text-white flex items-center justify-center font-display font-bold text-2xl shadow-sm">
+              <div className="w-14 h-14 rounded-2xl bg-[#14352B] text-white flex items-center justify-center font-serif font-black text-2xl shadow-xs">
                 {targetUser?.name?.[0] || "M"}
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#182026]">
+                <div className="flex items-center gap-2.5">
+                  <h1 className="font-serif font-black text-2xl sm:text-3xl text-[#12181F] tracking-tight">
                     {targetUser?.name || "Maya Chen"}
                   </h1>
-                  <span className="px-2 py-0.5 rounded bg-[#EBF3F0] text-[#19382F] text-xs font-mono font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#EBF3F0] text-[#14352B] text-xs font-mono font-bold border border-[#C5DDD3]">
                     Resident Observer
                   </span>
                 </div>
-                <p className="text-xs text-[#788290] mt-0.5">
+                <p className="text-xs text-[#687584] mt-1 font-mono">
                   Ward 4 (Central) • {issues.length} Total Submissions Recorded
                 </p>
               </div>
@@ -88,7 +88,7 @@ export default async function CitizenDashboardPage() {
 
             <Link
               href="/report"
-              className="bg-[#E05A47] hover:bg-[#CC4836] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+              className="bg-[#D94532] hover:bg-[#B83827] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-xs transition flex items-center gap-2 self-start sm:self-auto cursor-pointer"
             >
               <RoadIcon size={16} />
               + Report New Defect
@@ -97,68 +97,68 @@ export default async function CitizenDashboardPage() {
 
           {/* Metric Badges */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white border border-[#E8E2D8] rounded-xl p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-[#788290] mb-1">
-                <span className="text-[11px] font-mono uppercase font-semibold">
+            <div className="bg-white border border-[#E7E1D7] rounded-2xl p-4.5 shadow-xs transition hover:border-[#14352B]/40">
+              <div className="flex items-center justify-between text-[#687584] mb-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-widest font-bold">
                   Active Dispatch
                 </span>
-                <ClockIcon size={16} className="text-orange-600" />
+                <ClockIcon size={15} className="text-amber-600" />
               </div>
-              <div className="font-display font-bold text-2xl text-[#182026]">
+              <div className="font-serif font-black text-3xl text-[#12181F] tracking-tight">
                 {activeCount}
               </div>
-              <p className="text-[11px] text-[#788290] mt-0.5">Under Field Remediation</p>
+              <p className="text-[11px] text-[#687584] mt-0.5 font-mono">Under Field Remediation</p>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-emerald-800 mb-1">
-                <span className="text-[11px] font-mono uppercase font-semibold">
-                  Awaiting Your Signoff
+            <div className="bg-emerald-50/70 border border-emerald-300 rounded-2xl p-4.5 shadow-xs transition hover:border-emerald-400">
+              <div className="flex items-center justify-between text-emerald-800 mb-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-widest font-bold">
+                  Awaiting Signoff
                 </span>
-                <CheckCircleIcon size={16} className="text-emerald-600" />
+                <CheckCircleIcon size={15} className="text-emerald-700" />
               </div>
-              <div className="font-display font-bold text-2xl text-emerald-950">
+              <div className="font-serif font-black text-3xl text-emerald-950 tracking-tight">
                 {awaitingVerificationCount}
               </div>
-              <p className="text-[11px] text-emerald-700 mt-0.5 font-semibold">
+              <p className="text-[11px] text-emerald-800 mt-0.5 font-semibold font-mono">
                 Action Required: Confirm
               </p>
             </div>
 
-            <div className="bg-white border border-[#E8E2D8] rounded-xl p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-[#788290] mb-1">
-                <span className="text-[11px] font-mono uppercase font-semibold">
+            <div className="bg-white border border-[#E7E1D7] rounded-2xl p-4.5 shadow-xs transition hover:border-[#14352B]/40">
+              <div className="flex items-center justify-between text-[#687584] mb-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-widest font-bold">
                   Verified & Sealed
                 </span>
-                <ShieldCheckIcon size={16} className="text-[#19382F]" />
+                <ShieldCheckIcon size={15} className="text-[#14352B]" />
               </div>
-              <div className="font-display font-bold text-2xl text-[#182026]">
+              <div className="font-serif font-black text-3xl text-[#12181F] tracking-tight">
                 {verifiedCount}
               </div>
-              <p className="text-[11px] text-[#788290] mt-0.5">Complete Verified Loop</p>
+              <p className="text-[11px] text-[#687584] mt-0.5 font-mono">Complete Verified Loop</p>
             </div>
 
-            <div className="bg-white border border-[#E8E2D8] rounded-xl p-4 shadow-2xs">
-              <div className="flex items-center justify-between text-[#788290] mb-1">
-                <span className="text-[11px] font-mono uppercase font-semibold text-rose-800">
+            <div className="bg-white border border-[#E7E1D7] rounded-2xl p-4.5 shadow-xs transition hover:border-rose-300">
+              <div className="flex items-center justify-between text-[#687584] mb-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-rose-800">
                   Reopened
                 </span>
-                <RotateCcwIcon size={16} className="text-rose-600" />
+                <RotateCcwIcon size={15} className="text-rose-600" />
               </div>
-              <div className="font-display font-bold text-2xl text-rose-950">
+              <div className="font-serif font-black text-3xl text-rose-950 tracking-tight">
                 {reopenedCount}
               </div>
-              <p className="text-[11px] text-rose-700 mt-0.5">Escalated for Re-repair</p>
+              <p className="text-[11px] text-rose-700 mt-0.5 font-mono">Escalated for Re-repair</p>
             </div>
           </div>
 
           {/* Submissions List */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="font-display font-bold text-xl text-[#182026]">
+              <h2 className="font-serif font-black text-xl text-[#12181F]">
                 My Civic Submissions
               </h2>
-              <span className="text-xs font-mono text-[#788290]">
+              <span className="text-xs font-mono text-[#687584]">
                 {issues.length} Incidents Logged
               </span>
             </div>
@@ -168,12 +168,12 @@ export default async function CitizenDashboardPage() {
                 <Link
                   key={issue.id}
                   href={`/citizen/reports/${issue.id}`}
-                  className="bg-white border border-[#E8E2D8] hover:border-[#19382F] hover:shadow-md rounded-2xl p-5 transition flex flex-col justify-between group"
+                  className="bg-white border border-[#E7E1D7] hover:border-[#14352B] hover:shadow-md rounded-2xl p-5 transition flex flex-col justify-between group shadow-2xs"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-[#182026]">
+                        <span className="font-mono text-xs font-bold text-[#12181F]">
                           {issue.ticketNumber}
                         </span>
                         <CategoryBadge category={issue.category} />
@@ -183,7 +183,7 @@ export default async function CitizenDashboardPage() {
 
                     <div className="flex gap-4">
                       {issue.photoUrl && (
-                        <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-[#E8E2D8] bg-black/5">
+                        <div className="shrink-0 w-20 h-20 rounded-xl overflow-hidden border border-[#E7E1D7] bg-black/5">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={issue.photoUrl}
@@ -193,11 +193,11 @@ export default async function CitizenDashboardPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-display font-semibold text-base text-[#182026] group-hover:text-[#E05A47] transition line-clamp-1">
+                        <h3 className="font-serif font-bold text-base text-[#12181F] group-hover:text-[#D94532] transition line-clamp-1">
                           {issue.title}
                         </h3>
-                        <p className="text-xs text-[#788290] flex items-center gap-1 mt-1 truncate">
-                          <MapPinIcon size={12} className="shrink-0 text-[#E05A47]" />
+                        <p className="text-xs text-[#687584] flex items-center gap-1 mt-1 truncate font-mono">
+                          <MapPinIcon size={12} className="shrink-0 text-[#D94532]" />
                           <span>{issue.address}</span>
                         </p>
                         <p className="text-xs text-[#4B5563] mt-1.5 line-clamp-2 leading-relaxed">
@@ -207,8 +207,8 @@ export default async function CitizenDashboardPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-[#F4EFEA] flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 text-[#788290]">
+                  <div className="mt-4 pt-3 border-t border-[#FAF8F5] flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-[#687584] font-mono">
                       <PriorityBadge priority={issue.priority} />
                       <span>•</span>
                       <span>
@@ -216,7 +216,7 @@ export default async function CitizenDashboardPage() {
                       </span>
                     </div>
 
-                    <span className="font-semibold text-[#19382F] group-hover:translate-x-1 transition flex items-center gap-1">
+                    <span className="font-semibold text-xs text-[#14352B] group-hover:translate-x-1 transition flex items-center gap-1">
                       Inspect Timeline →
                     </span>
                   </div>

@@ -76,53 +76,54 @@ export function AuthorityDashboardClient({
   return (
     <div className="space-y-6">
       {/* Top Operations Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#E8E2D8]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#E7E1D7]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-[#19382F] text-white">
-              <ShieldCheckIcon size={18} />
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-[#14352B] text-white shadow-xs">
+              <ShieldCheckIcon size={20} />
             </span>
-            <h1 className="font-display font-bold text-2xl sm:text-3xl text-[#182026]">
+            <h1 className="font-serif font-black text-2xl sm:text-3xl text-[#12181F] tracking-tight">
               Municipal Operations Center
             </h1>
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-mono font-bold">
-              ● Live Incident Stream
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-mono font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live Incident Stream
             </span>
           </div>
-          <p className="text-xs text-[#788290] mt-1">
-            Real-time geospatial dispatch, AI classification triage, and resolution proof management.
+          <p className="text-xs text-[#687584] mt-1.5 font-mono">
+            Autonomous triage, field crew telemetry dispatch, and citizen resolution proof signoff ledger.
           </p>
         </div>
 
         {/* View Switcher & Analytics Link */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center rounded-lg border border-[#D5CCC0] bg-white p-1 text-xs">
+          <div className="flex items-center rounded-xl border border-[#D8D0C3] bg-white p-1 text-xs shadow-2xs">
             <button
               onClick={() => setViewMode("split")}
-              className={`px-3 py-1 rounded-md font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
                 viewMode === "split"
-                  ? "bg-[#19382F] text-white"
-                  : "text-[#4B5563] hover:text-[#182026]"
+                  ? "bg-[#14352B] text-white shadow-xs"
+                  : "text-[#4B5563] hover:text-[#12181F]"
               }`}
             >
               Split View
             </button>
             <button
               onClick={() => setViewMode("map")}
-              className={`px-3 py-1 rounded-md font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
                 viewMode === "map"
-                  ? "bg-[#19382F] text-white"
-                  : "text-[#4B5563] hover:text-[#182026]"
+                  ? "bg-[#14352B] text-white shadow-xs"
+                  : "text-[#4B5563] hover:text-[#12181F]"
               }`}
             >
               Full Map
             </button>
             <button
               onClick={() => setViewMode("table")}
-              className={`px-3 py-1 rounded-md font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg font-semibold transition cursor-pointer ${
                 viewMode === "table"
-                  ? "bg-[#19382F] text-white"
-                  : "text-[#4B5563] hover:text-[#182026]"
+                  ? "bg-[#14352B] text-white shadow-xs"
+                  : "text-[#4B5563] hover:text-[#12181F]"
               }`}
             >
               Triage Grid
@@ -131,7 +132,7 @@ export function AuthorityDashboardClient({
 
           <Link
             href="/authority/analytics"
-            className="text-xs font-semibold px-3 py-2 rounded-lg bg-[#F4EFEA] hover:bg-[#EBE4DC] border border-[#E8E2D8] text-[#182026] transition flex items-center gap-1.5"
+            className="text-xs font-semibold px-3.5 py-2 rounded-xl bg-[#FAF8F5] hover:bg-[#F3EFE8] border border-[#D8D0C3] text-[#12181F] transition flex items-center gap-2 shadow-2xs cursor-pointer"
           >
             <span>📊</span>
             District Analytics
@@ -153,8 +154,8 @@ export function AuthorityDashboardClient({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Geospatial Map */}
           <div className="lg:col-span-5 space-y-2">
-            <div className="flex items-center justify-between text-xs font-mono text-[#788290]">
-              <span className="font-bold text-[#182026] uppercase">
+            <div className="flex items-center justify-between text-xs font-mono text-[#687584]">
+              <span className="font-bold text-[#12181F] uppercase tracking-wider text-[11px]">
                 Geospatial Incident Map
               </span>
               <span>Click pin to inspect</span>
@@ -172,8 +173,8 @@ export function AuthorityDashboardClient({
 
           {/* High-Density Triage Table */}
           <div className="lg:col-span-7 space-y-2">
-            <div className="flex items-center justify-between text-xs font-mono text-[#788290]">
-              <span className="font-bold text-[#182026] uppercase">
+            <div className="flex items-center justify-between text-xs font-mono text-[#687584]">
+              <span className="font-bold text-[#12181F] uppercase tracking-wider text-[11px]">
                 Active Triage Queue
               </span>
               <span>Sorted by recent observation</span>

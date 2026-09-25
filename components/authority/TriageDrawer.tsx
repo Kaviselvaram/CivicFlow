@@ -211,46 +211,73 @@ export function TriageDrawer({
     <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative w-full max-w-xl bg-white border-l border-[#E8E2D8] shadow-2xl h-full flex flex-col z-10 animate-in slide-in-from-right duration-200">
+      <div className="relative w-full max-w-xl bg-white border-l border-[#E7E1D7] shadow-2xl h-full flex flex-col z-10 animate-in slide-in-from-right duration-200">
         {/* Drawer Header */}
-        <div className="p-5 border-b border-[#E8E2D8] flex items-start justify-between bg-[#FBF9F5]">
+        <div className="p-5 border-b border-[#E7E1D7] flex items-start justify-between bg-[#FAF8F5]">
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold text-[#182026]">
+              <span className="font-mono text-xs font-bold text-[#12181F]">
                 {issue.ticketNumber}
               </span>
               <StatusBadge status={issue.status} />
               <PriorityBadge priority={issue.priority} />
             </div>
-            <h2 className="font-display font-bold text-xl text-[#182026] mt-1 line-clamp-1">
+            <h2 className="font-serif font-black text-xl text-[#12181F] mt-1.5 line-clamp-1">
               {issue.title}
             </h2>
-            <p className="text-xs text-[#788290] mt-0.5">📍 {issue.address}</p>
+            <p className="text-xs text-[#687584] mt-0.5 font-mono">📍 {issue.address}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-[#788290] hover:text-[#182026] hover:bg-[#F4EFEA] transition cursor-pointer"
+            className="p-1.5 rounded-lg text-[#687584] hover:text-[#12181F] hover:bg-[#EAE4D9] transition cursor-pointer"
             aria-label="Close triage panel"
           >
-            <XIcon size={20} />
+            <XIcon size={18} />
           </button>
+        </div>
+
+        {/* Lifecycle Stepper Indicator */}
+        <div className="bg-[#F7F4EE] border-b border-[#E7E1D7] px-5 py-2.5 flex items-center justify-between text-[11px] font-mono">
+          {[
+            { step: "1", label: "Reported", active: true },
+            { step: "2", label: "Triage", active: ["IN_REVIEW", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "VERIFIED"].includes(issue.status) },
+            { step: "3", label: "Crew", active: ["ASSIGNED", "IN_PROGRESS", "RESOLVED", "VERIFIED"].includes(issue.status) },
+            { step: "4", label: "Repair", active: ["IN_PROGRESS", "RESOLVED", "VERIFIED"].includes(issue.status) },
+            { step: "5", label: "Signoff", active: ["RESOLVED", "VERIFIED"].includes(issue.status) },
+          ].map((item, idx, arr) => (
+            <React.Fragment key={item.step}>
+              <div className="flex items-center gap-1.5">
+                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                  item.active ? "bg-[#14352B] text-white" : "bg-[#D8D0C3] text-[#687584]"
+                }`}>
+                  {item.step}
+                </span>
+                <span className={`hidden sm:inline ${item.active ? "font-bold text-[#14352B]" : "text-[#687584]"}`}>
+                  {item.label}
+                </span>
+              </div>
+              {idx < arr.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-2 ${arr[idx+1].active ? "bg-[#14352B]" : "bg-[#D8D0C3]"}`} />
+              )}
+            </React.Fragment>
+          ))}
         </div>
 
         {/* Drawer Body (Scrollable) */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Defect Photo View */}
           <div className="space-y-2">
-            <span className="text-xs font-mono font-semibold text-[#788290] uppercase tracking-wider">
+            <span className="text-[10px] font-mono font-bold text-[#687584] uppercase tracking-widest">
               Citizen Photo Evidence
             </span>
-            <div className="relative rounded-xl overflow-hidden border border-[#E8E2D8] aspect-video bg-black/5">
+            <div className="relative rounded-2xl overflow-hidden border border-[#E7E1D7] aspect-video bg-black/5 shadow-2xs">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={issue.photoUrl}
                 alt="Defect evidence"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-xs text-white text-[11px] font-mono px-2 py-0.5 rounded">
+              <div className="absolute bottom-2.5 left-2.5 bg-black/75 backdrop-blur-xs text-white text-[11px] font-mono px-2.5 py-1 rounded-md">
                 Captured {new Date(issue.createdAt).toLocaleDateString()}
               </div>
             </div>
@@ -261,38 +288,38 @@ export function TriageDrawer({
             <span className="text-xs font-mono font-semibold text-[#788290] uppercase tracking-wider">
               Citizen Description
             </span>
-            <p className="text-sm text-[#182026] leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#12181F] leading-relaxed">
               {issue.description}
             </p>
             {issue.reporter && (
-              <div className="pt-2 mt-2 border-t border-[#E8E2D8] flex items-center justify-between text-xs text-[#788290]">
-                <span>Reported by: <strong>{issue.reporter.name}</strong></span>
+              <div className="pt-2 mt-2 border-t border-[#E7E1D7] flex items-center justify-between text-xs text-[#687584] font-mono">
+                <span>Reporter: <strong className="text-[#12181F]">{issue.reporter.name}</strong></span>
                 {issue.reporter.phone && <span>{issue.reporter.phone}</span>}
               </div>
             )}
           </div>
 
           {/* Supervisor Triage Controls */}
-          <div className="border border-[#E8E2D8] rounded-xl p-5 space-y-4">
+          <div className="border border-[#E7E1D7] rounded-2xl p-5 space-y-4 bg-white shadow-2xs">
             <div className="flex items-center justify-between">
-              <h3 className="font-display font-semibold text-base text-[#182026] flex items-center gap-2">
-                <BuildingIcon size={18} className="text-[#19382F]" />
+              <h3 className="font-serif font-bold text-base text-[#12181F] flex items-center gap-2">
+                <BuildingIcon size={18} className="text-[#14352B]" />
                 Department & Crew Dispatch
               </h3>
-              <span className="text-[11px] font-mono text-[#788290]">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#687584] font-bold">
                 Supervisor Override
               </span>
             </div>
 
             {/* Department */}
             <div>
-              <label className="block text-xs font-semibold text-[#182026] uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-mono font-bold text-[#12181F] uppercase tracking-wider mb-1.5">
                 Responsible Department
               </label>
               <select
                 value={selectedDeptId}
                 onChange={(e) => setSelectedDeptId(e.target.value)}
-                className="w-full text-sm rounded-lg border border-[#D5CCC0] py-2 px-3 bg-white text-[#182026] focus:border-[#19382F] focus:outline-none"
+                className="w-full text-xs rounded-xl border border-[#D8D0C3] py-2 px-3 bg-[#FAF8F5] text-[#12181F] focus:border-[#14352B] focus:outline-none transition cursor-pointer"
               >
                 {departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>
@@ -304,7 +331,7 @@ export function TriageDrawer({
 
             {/* Priority */}
             <div>
-              <label className="block text-xs font-semibold text-[#182026] uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-mono font-bold text-[#12181F] uppercase tracking-wider mb-1.5">
                 Priority Urgency Level
               </label>
               <div className="grid grid-cols-4 gap-2">
@@ -313,10 +340,10 @@ export function TriageDrawer({
                     key={p}
                     type="button"
                     onClick={() => setSelectedPriority(p)}
-                    className={`py-1.5 text-xs font-bold rounded-lg border transition cursor-pointer ${
+                    className={`py-1.5 text-xs font-mono font-bold rounded-xl border transition cursor-pointer ${
                       selectedPriority === p
-                        ? "bg-[#182026] text-white border-[#182026]"
-                        : "bg-[#FBF9F5] text-[#4B5563] border-[#E8E2D8] hover:bg-white"
+                        ? "bg-[#14352B] text-white border-[#14352B] shadow-2xs"
+                        : "bg-[#FAF8F5] text-[#4B5563] border-[#E7E1D7] hover:bg-white"
                     }`}
                   >
                     {p}
@@ -327,13 +354,13 @@ export function TriageDrawer({
 
             {/* Field Crew Assignment */}
             <div>
-              <label className="block text-xs font-semibold text-[#182026] uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-mono font-bold text-[#12181F] uppercase tracking-wider mb-1.5">
                 Dispatch Specific Field Crew
               </label>
               <select
                 value={selectedCrewId}
                 onChange={(e) => setSelectedCrewId(e.target.value)}
-                className="w-full text-sm rounded-lg border border-[#D5CCC0] py-2 px-3 bg-white text-[#182026] focus:border-[#19382F] focus:outline-none"
+                className="w-full text-xs rounded-xl border border-[#D8D0C3] py-2 px-3 bg-[#FAF8F5] text-[#12181F] focus:border-[#14352B] focus:outline-none transition cursor-pointer"
               >
                 <option value="">-- No specific crew assigned --</option>
                 {availableCrews.map((c) => (
@@ -357,19 +384,19 @@ export function TriageDrawer({
               size="sm"
               onClick={handleSaveTriage}
               isLoading={isSavingTriage}
-              className="w-full"
+              className="w-full shadow-2xs cursor-pointer"
             >
               Save Triage & Assignment
             </Button>
           </div>
 
           {/* Quick Lifecycle Advancement Engine */}
-          <div className="border border-[#E8E2D8] rounded-xl p-5 space-y-3">
-            <h3 className="font-display font-semibold text-base text-[#182026] flex items-center gap-2">
-              <TruckIcon size={18} className="text-[#E05A47]" />
+          <div className="border border-[#E7E1D7] rounded-2xl p-5 space-y-3 bg-[#FAF8F5]">
+            <h3 className="font-serif font-bold text-base text-[#12181F] flex items-center gap-2">
+              <TruckIcon size={18} className="text-[#D94532]" />
               Work Order Status Engine
             </h3>
-            <p className="text-xs text-[#788290]">
+            <p className="text-xs text-[#687584]">
               Advance the physical lifecycle of this ticket as field work progresses:
             </p>
 
@@ -423,11 +450,11 @@ export function TriageDrawer({
         </div>
 
         {/* Drawer Footer */}
-        <div className="p-4 border-t border-[#E8E2D8] bg-[#FBF9F5] flex items-center justify-between">
-          <span className="text-xs font-mono text-[#788290]">
-            Target Ward: {issue.ward || "Ward 4"}
+        <div className="p-4 border-t border-[#E7E1D7] bg-[#FAF8F5] flex items-center justify-between">
+          <span className="text-xs font-mono text-[#687584]">
+            Target Ward: {issue.ward || "Ward 4 (Central)"}
           </span>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} className="cursor-pointer">
             Close Drawer
           </Button>
         </div>
@@ -436,19 +463,19 @@ export function TriageDrawer({
       {/* MODAL: Attach Resolution Evidence & Mark RESOLVED */}
       {isResolveModalOpen && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white border border-[#E8E2D8] rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white border border-[#E7E1D7] rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div>
-              <h3 className="font-display font-bold text-xl text-[#182026]">
+              <h3 className="font-serif font-black text-xl text-[#12181F]">
                 Mark Ticket #{issue.ticketNumber} Resolved
               </h3>
-              <p className="text-xs text-[#788290] mt-1">
+              <p className="text-xs text-[#687584] mt-1 font-mono">
                 Provide field resolution evidence so the citizen can inspect and verify.
               </p>
             </div>
 
             {/* Resolution Photo Preset Selector */}
             <div>
-              <label className="block text-xs font-semibold text-[#182026] uppercase tracking-wider mb-2">
+              <label className="block text-[11px] font-mono font-bold text-[#12181F] uppercase tracking-wider mb-2">
                 Resolution Proof Photo *
               </label>
               <div className="grid grid-cols-2 gap-2 mb-3">
@@ -457,28 +484,28 @@ export function TriageDrawer({
                     key={preset.label}
                     type="button"
                     onClick={() => setResolutionPhotoUrl(preset.url)}
-                    className={`p-2 rounded-lg border text-left text-xs transition cursor-pointer flex items-center gap-2 ${
+                    className={`p-2.5 rounded-xl border text-left text-xs transition cursor-pointer flex items-center gap-2 ${
                       resolutionPhotoUrl === preset.url
-                        ? "border-[#19382F] bg-[#EBF3F0] font-bold text-[#19382F]"
-                        : "border-[#E8E2D8] hover:bg-[#FBF9F5] text-[#4B5563]"
+                        ? "border-[#14352B] bg-[#EBF3F0] font-bold text-[#14352B] shadow-2xs"
+                        : "border-[#E7E1D7] hover:bg-[#FAF8F5] text-[#4B5563]"
                     }`}
                   >
-                    <span className="w-2 h-2 rounded-full bg-[#19382F]" />
+                    <span className="w-2 h-2 rounded-full bg-[#14352B]" />
                     <span className="truncate">{preset.label}</span>
                   </button>
                 ))}
               </div>
 
               {resolutionPhotoUrl && (
-                <div className="relative rounded-xl overflow-hidden border border-[#E8E2D8] aspect-video">
+                <div className="relative rounded-2xl overflow-hidden border border-[#E7E1D7] aspect-video shadow-2xs">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={resolutionPhotoUrl}
                     alt="Resolution preview"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-2 left-2 bg-[#19382F] text-white text-[11px] font-mono px-2 py-0.5 rounded font-bold">
-                    ✓ Resolution Proof
+                  <div className="absolute bottom-2.5 left-2.5 bg-[#14352B] text-white text-[11px] font-mono px-2.5 py-1 rounded-md font-bold">
+                    ✓ Resolution Proof Attached
                   </div>
                 </div>
               )}
@@ -493,11 +520,12 @@ export function TriageDrawer({
               required
             />
 
-            <div className="pt-3 border-t border-[#E8E2D8] flex items-center justify-end gap-3">
+            <div className="pt-3 border-t border-[#E7E1D7] flex items-center justify-end gap-3">
               <Button
                 variant="ghost"
                 onClick={() => setIsResolveModalOpen(false)}
                 disabled={isSubmittingStatus}
+                className="cursor-pointer"
               >
                 Cancel
               </Button>
@@ -506,8 +534,9 @@ export function TriageDrawer({
                 onClick={handleConfirmResolve}
                 isLoading={isSubmittingStatus}
                 icon={<CheckCircleIcon size={16} />}
+                className="shadow-xs cursor-pointer"
               >
-                Confirm Resolution
+                Confirm Resolution & Dispatch Proof
               </Button>
             </div>
           </div>

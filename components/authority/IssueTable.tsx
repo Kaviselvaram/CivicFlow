@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { DrawerIssueData } from "./TriageDrawer";
 import { StatusBadge, PriorityBadge, CategoryBadge } from "../ui/Badge";
-import { SearchIcon, FilterIcon } from "../icons";
+import { SearchIcon } from "../icons";
 
 interface IssueTableProps {
   issues: DrawerIssueData[];
@@ -36,62 +36,61 @@ export function IssueTable({ issues, onSelectIssue }: IssueTableProps) {
   });
 
   return (
-    <div className="bg-white border border-[#E8E2D8] rounded-2xl shadow-xs overflow-hidden">
+    <div className="bg-white border border-[#E7E1D7] rounded-2xl shadow-xs overflow-hidden">
       {/* Table Toolbar */}
-      <div className="p-4 border-b border-[#E8E2D8] flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#FBF9F5]">
+      <div className="p-4 border-b border-[#E7E1D7] flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 bg-[#FAF8F5]">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#788290]">
-            <SearchIcon size={16} />
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#687584]">
+            <SearchIcon size={15} />
           </div>
           <input
             type="text"
-            placeholder="Search tickets, addresses, or keywords..."
+            placeholder="Search tickets, street names, keywords..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-[#D5CCC0] bg-white text-[#182026] placeholder-[#788290] focus:border-[#19382F] focus:outline-none"
+            className="block w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-[#D8D0C3] bg-white text-[#12181F] placeholder-[#687584] focus:border-[#14352B] focus:ring-1 focus:ring-[#14352B] focus:outline-none transition"
           />
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Priority dropdown */}
-          <div className="flex items-center gap-1 text-xs">
-            <span className="text-[#788290] font-mono">Priority:</span>
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="text-xs font-semibold py-1.5 px-2.5 rounded-lg border border-[#D5CCC0] bg-white text-[#182026] focus:outline-none"
-            >
-              <option value="ALL">All Priorities</option>
-              <option value="CRITICAL">Critical</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
-            </select>
-          </div>
+        {/* Priority Filter */}
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-mono text-[#687584] uppercase tracking-wider font-semibold">
+            Priority:
+          </span>
+          <select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+            className="text-xs font-semibold py-1.5 px-3 rounded-xl border border-[#D8D0C3] bg-white text-[#12181F] focus:border-[#14352B] focus:outline-none transition cursor-pointer"
+          >
+            <option value="ALL">All Urgencies</option>
+            <option value="CRITICAL">🔴 Critical Only</option>
+            <option value="HIGH">🟠 High Urgency</option>
+            <option value="MEDIUM">🟡 Medium</option>
+            <option value="LOW">🟢 Low</option>
+          </select>
         </div>
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex items-center gap-1 p-2 border-b border-[#E8E2D8] overflow-x-auto text-xs font-medium bg-[#FAF7F2]">
+      <div className="flex items-center gap-1.5 p-2.5 border-b border-[#E7E1D7] overflow-x-auto text-xs bg-[#F7F4EE]">
         {[
           { key: "ALL", label: "All Incidents" },
           { key: "REPORTED", label: "Reported" },
           { key: "IN_REVIEW", label: "In Review" },
           { key: "ASSIGNED", label: "Assigned" },
           { key: "IN_PROGRESS", label: "In Progress" },
-          { key: "RESOLVED", label: "Awaiting Verification" },
+          { key: "RESOLVED", label: "Awaiting Signoff" },
           { key: "VERIFIED", label: "Verified" },
           { key: "REOPENED", label: "Reopened" },
         ].map((tab) => (
           <button
             key={tab.key}
             onClick={() => setStatusFilter(tab.key)}
-            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition cursor-pointer font-semibold ${
+            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition cursor-pointer text-xs font-semibold ${
               statusFilter === tab.key
-                ? "bg-[#19382F] text-white shadow-2xs"
-                : "text-[#4B5563] hover:bg-[#EBE4DC] hover:text-[#182026]"
+                ? "bg-[#14352B] text-white shadow-2xs"
+                : "text-[#4B5563] hover:bg-[#EDE7DC] hover:text-[#12181F]"
             }`}
           >
             {tab.label}
@@ -101,23 +100,24 @@ export function IssueTable({ issues, onSelectIssue }: IssueTableProps) {
 
       {/* Data Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-[#182026]">
-          <thead className="bg-[#F4EFEA] border-b border-[#E8E2D8] uppercase tracking-wider text-[10px] font-mono text-[#788290]">
+        <table className="w-full text-left text-xs text-[#12181F]">
+          <thead className="bg-[#FAF8F5] border-b border-[#E7E1D7] uppercase tracking-wider text-[10px] font-mono text-[#687584]">
             <tr>
               <th className="py-3 px-4">Ticket</th>
               <th className="py-3 px-4">Category</th>
-              <th className="py-3 px-4">Issue Summary & Location</th>
+              <th className="py-3 px-4">Incident Title & Location</th>
               <th className="py-3 px-4">Priority</th>
               <th className="py-3 px-4">Status</th>
               <th className="py-3 px-4">Assigned Crew</th>
-              <th className="py-3 px-4 text-right">Action</th>
+              <th className="py-3 px-4 text-right">Triage</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#E8E2D8]">
+          <tbody className="divide-y divide-[#E7E1D7]">
             {filteredIssues.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-[#788290]">
-                  No civic tickets match the active search or filter criteria.
+                <td colSpan={7} className="py-14 text-center text-[#687584]">
+                  <p className="font-serif italic text-base">No incidents match the active search or filter.</p>
+                  <p className="text-[11px] font-mono mt-1 text-[#8C98A6]">Try resetting filters or adjusting search keywords</p>
                 </td>
               </tr>
             ) : (
@@ -125,46 +125,55 @@ export function IssueTable({ issues, onSelectIssue }: IssueTableProps) {
                 <tr
                   key={issue.id}
                   onClick={() => onSelectIssue(issue)}
-                  className="hover:bg-[#FBF9F5] transition cursor-pointer group"
+                  className={`hover:bg-[#FAF8F5] transition cursor-pointer group ${
+                    issue.priority === "CRITICAL" && issue.status !== "VERIFIED"
+                      ? "bg-rose-50/30"
+                      : ""
+                  }`}
                 >
-                  <td className="py-3.5 px-4 font-mono font-bold text-[#182026]">
-                    {issue.ticketNumber}
+                  <td className="py-3.5 px-4 font-mono font-bold text-[#12181F] whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      {issue.priority === "CRITICAL" && issue.status !== "VERIFIED" && (
+                        <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
+                      )}
+                      <span>{issue.ticketNumber}</span>
+                    </div>
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <CategoryBadge category={issue.category} />
                   </td>
                   <td className="py-3.5 px-4 max-w-xs">
-                    <p className="font-semibold text-sm text-[#182026] group-hover:text-[#E05A47] transition line-clamp-1">
+                    <p className="font-semibold text-xs sm:text-sm text-[#12181F] group-hover:text-[#D94532] transition line-clamp-1">
                       {issue.title}
                     </p>
-                    <p className="text-[11px] text-[#788290] line-clamp-1 mt-0.5">
+                    <p className="text-[11px] text-[#687584] line-clamp-1 mt-0.5 font-mono">
                       📍 {issue.address}
                     </p>
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <PriorityBadge priority={issue.priority} />
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     <StatusBadge status={issue.status} />
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3.5 px-4 whitespace-nowrap">
                     {issue.crew ? (
-                      <span className="font-medium text-[#19382F]">
+                      <span className="font-semibold text-xs text-[#14352B] bg-[#EBF3F0] px-2 py-0.5 rounded-md border border-[#C5DDD3]">
                         {issue.crew.name}
                       </span>
                     ) : (
-                      <span className="text-[#788290] italic">Unassigned</span>
+                      <span className="text-[#8C98A6] italic text-xs font-mono">Unassigned</span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onSelectIssue(issue);
                       }}
-                      className="px-2.5 py-1 rounded bg-[#F4EFEA] hover:bg-[#19382F] hover:text-white font-semibold transition text-xs border border-[#D5CCC0]"
+                      className="px-3 py-1.5 rounded-lg bg-[#FAF8F5] group-hover:bg-[#14352B] group-hover:text-white font-semibold transition text-xs border border-[#D8D0C3] group-hover:border-[#14352B]"
                     >
-                      Triage →
+                      Inspect →
                     </button>
                   </td>
                 </tr>
@@ -175,10 +184,16 @@ export function IssueTable({ issues, onSelectIssue }: IssueTableProps) {
       </div>
 
       {/* Table Footer */}
-      <div className="p-3 border-t border-[#E8E2D8] bg-[#FBF9F5] flex items-center justify-between text-xs text-[#788290]">
-        <span>Showing {filteredIssues.length} of {issues.length} incidents</span>
-        <span className="font-mono text-[11px]">Real-time Database Sync Active</span>
+      <div className="p-3.5 border-t border-[#E7E1D7] bg-[#FAF8F5] flex items-center justify-between text-xs text-[#687584]">
+        <span className="font-mono text-[11px]">
+          Showing <strong>{filteredIssues.length}</strong> of <strong>{issues.length}</strong> municipal incidents
+        </span>
+        <span className="font-mono text-[11px] flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          Real-time Database Sync Active
+        </span>
       </div>
     </div>
   );
 }
+
