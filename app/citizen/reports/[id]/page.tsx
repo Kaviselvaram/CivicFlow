@@ -9,7 +9,7 @@ import { SplitBeforeAfter } from "@/components/citizen/SplitBeforeAfter";
 import { IssueTimeline } from "@/components/citizen/IssueTimeline";
 import { VerificationPrompt } from "@/components/citizen/VerificationPrompt";
 import { ToastProvider } from "@/components/ui/Toast";
-import { MapPinIcon, BuildingIcon, TruckIcon, ClockIcon, UserIcon } from "@/components/icons";
+import { MapPinIcon, BuildingIcon, TruckIcon } from "@/components/icons";
 
 export const revalidate = 0;
 

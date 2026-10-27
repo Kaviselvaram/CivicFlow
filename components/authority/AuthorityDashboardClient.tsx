@@ -7,7 +7,7 @@ import { IssueTable } from "./IssueTable";
 import { TriageDrawer, DrawerIssueData } from "./TriageDrawer";
 import { InteractiveCityMap } from "../map/InteractiveCityMap";
 import { ToastProvider, useToast } from "../ui/Toast";
-import { ShieldCheckIcon, TruckIcon } from "../icons";
+import { ShieldCheckIcon } from "../icons";
 
 interface DepartmentData {
   id: string;

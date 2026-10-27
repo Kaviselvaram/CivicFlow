@@ -14,7 +14,6 @@ import {
   SparklesIcon,
   CheckCircleIcon,
   ArrowRightIcon,
-  CrosshairIcon,
 } from "../icons";
 import { Button } from "../ui/Button";
 import { Input, Textarea } from "../ui/Input";
@@ -121,14 +120,18 @@ export function ReportWizard({
   const [submitProgressStage, setSubmitProgressStage] = useState<string>("");
   const [submissionError, setSubmissionError] = useState<string | null>(null);
 
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
+  const [storageLocation, setStorageLocation] = useState<string | null>(null);
+
   // Trigger real-time AI classification when description changes (debounced)
   useEffect(() => {
-    if (!description || description.trim().length < 12) {
-      setAiRecommendation(null);
-      return;
-    }
-
     const timer = setTimeout(async () => {
+      if (!description || description.trim().length < 12) {
+        setAiRecommendation(null);
+        return;
+      }
+
       setAiLoading(true);
       try {
         const res = await fetch("/api/ai/classify", {
@@ -154,11 +157,101 @@ export function ReportWizard({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setPhotoError(null);
+
+    // Validate image format
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic"];
+    if (
+      file.type &&
+      !validTypes.includes(file.type.toLowerCase()) &&
+      !file.name.match(/\.(jpg|jpeg|png|webp|heic)$/i)
+    ) {
+      setPhotoError("Unsupported format. Please upload JPG, PNG, or WEBP.");
+      return;
+    }
+
+    // Validate size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      setPhotoError("File size exceeds 10MB limit. Please select a smaller photo.");
+      return;
+    }
+
     setPhotoFileName(file.name);
+    setIsUploadingPhoto(true);
+
+    // Downsample large camera photos via Canvas to avoid massive payloads
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
-      setPhotoUrl(result);
+      const img = new Image();
+      img.onload = async () => {
+        const maxDimension = 1600;
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        let finalDataUrl = result;
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          finalDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        }
+        // Set immediate local preview
+        setPhotoUrl(finalDataUrl);
+
+        // Upload physical file to /api/upload server storage
+        try {
+          const res = await fetch(finalDataUrl);
+          const blob = await res.blob();
+          const formData = new FormData();
+          const cleanName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+          formData.append("file", blob, cleanName);
+
+          let uploadRes = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          // If unauthenticated guest, auto-init demo citizen session and retry
+          if (uploadRes.status === 401) {
+            await fetch("/api/auth/demo", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ persona: "citizen" }),
+            });
+            uploadRes = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
+          }
+
+          if (uploadRes.ok) {
+            const data = await uploadRes.json();
+            if (data.url) {
+              setPhotoUrl(data.url);
+              setStorageLocation(`public${data.url}`);
+            }
+          }
+        } catch (uploadErr) {
+          console.warn("Evidence server upload skipped, using base64 preview:", uploadErr);
+        } finally {
+          setIsUploadingPhoto(false);
+        }
+      };
+      img.onerror = () => {
+        setPhotoUrl(result);
+        setIsUploadingPhoto(false);
+      };
+      img.src = result;
     };
     reader.readAsDataURL(file);
   }
@@ -175,6 +268,7 @@ export function ReportWizard({
     });
     setPhotoUrl(preset.photoUrl);
     setPhotoFileName(preset.name);
+    setStorageLocation(null);
   }
 
   async function handleSubmit() {
@@ -212,8 +306,8 @@ export function ReportWizard({
       }
 
       const data = await res.json();
-      setSubmitProgressStage(`✓ Ticket ${data.issue.ticketNumber} Dispatched!`);
-      await new Promise((r) => setTimeout(r, 350));
+      setSubmitProgressStage(`✓ Ticket ${data.issue.ticketNumber} Persisted in SQLite (prisma/dev.db)!`);
+      await new Promise((r) => setTimeout(r, 450));
 
       if (onSubmitted) {
         onSubmitted(data.issue.ticketNumber, data.issue.id);
@@ -366,6 +460,12 @@ export function ReportWizard({
             </p>
           </div>
 
+          {photoError && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-medium">
+              ⚠ {photoError}
+            </div>
+          )}
+
           {photoUrl ? (
             <div className="relative rounded-2xl overflow-hidden border border-[#E6DFD4] bg-black/5 aspect-video max-h-80">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -381,11 +481,26 @@ export function ReportWizard({
               >
                 Change Photo
               </button>
-              {photoFileName && (
-                <div className="absolute bottom-3 left-3 bg-white/95 text-[#12181F] text-xs font-mono px-3 py-1 rounded-lg backdrop-blur-xs border border-[#E6DFD4]">
-                  {photoFileName}
+              {/* Disk storage reflection badge */}
+              <div className="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-col gap-1">
+                  {isUploadingPhoto ? (
+                    <div className="bg-[#14352B]/95 text-white text-[11px] font-mono px-3 py-1 rounded-lg backdrop-blur-xs border border-white/20 shadow-xs flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                      <span>Writing evidence file to server disk...</span>
+                    </div>
+                  ) : storageLocation || photoUrl.startsWith("/uploads/") ? (
+                    <div className="bg-[#14352B]/95 text-white text-[11px] font-mono px-3 py-1 rounded-lg backdrop-blur-xs border border-emerald-500/40 shadow-xs flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Stored on Disk: <strong>{storageLocation || `public${photoUrl}`}</strong></span>
+                    </div>
+                  ) : (
+                    <div className="bg-white/95 text-[#12181F] text-xs font-mono px-3 py-1 rounded-lg backdrop-blur-xs border border-[#E6DFD4]">
+                      {photoFileName || "Demonstration Reference Photo"}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <label className="flex flex-col items-center justify-center p-10 border-2 border-dashed border-[#D1C7B8] hover:border-[#14352B] rounded-3xl bg-[#FAF8F5] hover:bg-white transition cursor-pointer group">

@@ -1,0 +1,6 @@
+{
+  "workbench.editorAssociations": {
+    "*.db": "qwtel.sqlite-viewer",
+    "*.sqlite": "qwtel.sqlite-viewer"
+  }
+}

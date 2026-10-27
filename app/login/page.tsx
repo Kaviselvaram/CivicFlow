@@ -20,42 +20,46 @@ function LoginFormInner() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleDemoLogin = React.useCallback(
+    async (persona: "citizen" | "authority") => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/auth/demo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ persona }),
+        });
+
+        if (!res.ok) throw new Error("Demo login failed");
+        const data = await res.json();
+
+        showToast("success", `Signed in as ${data.user.name}`, `Role: ${data.user.role}`);
+
+        if (data.user.role === "AUTHORITY" || data.user.role === "ADMIN") {
+          router.push("/authority/dashboard");
+        } else {
+          router.push("/citizen/dashboard");
+        }
+        router.refresh();
+      } catch {
+        showToast("error", "Error", "Could not sign in with demo account.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router, showToast]
+  );
+
   // Auto-switch to demo persona if query param provided
   useEffect(() => {
     const persona = searchParams.get("persona");
-    if (persona === "citizen") {
-      handleDemoLogin("citizen");
-    } else if (persona === "authority") {
-      handleDemoLogin("authority");
+    if (persona === "citizen" || persona === "authority") {
+      const timer = setTimeout(() => {
+        handleDemoLogin(persona);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }, [searchParams]);
-
-  async function handleDemoLogin(persona: "citizen" | "authority") {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/auth/demo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ persona }),
-      });
-
-      if (!res.ok) throw new Error("Demo login failed");
-      const data = await res.json();
-
-      showToast("success", `Signed in as ${data.user.name}`, `Role: ${data.user.role}`);
-
-      if (data.user.role === "AUTHORITY" || data.user.role === "ADMIN") {
-        router.push("/authority/dashboard");
-      } else {
-        router.push("/citizen/dashboard");
-      }
-      router.refresh();
-    } catch {
-      showToast("error", "Error", "Could not sign in with demo account.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  }, [searchParams, handleDemoLogin]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

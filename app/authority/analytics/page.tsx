@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Navbar } from "@/components/layout/Navbar";
@@ -13,6 +14,14 @@ export const revalidate = 0;
 
 export default async function AuthorityAnalyticsPage() {
   const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    redirect("/login?redirect=/authority/analytics");
+  }
+
+  if (currentUser.role !== "AUTHORITY" && currentUser.role !== "ADMIN") {
+    redirect("/citizen/dashboard?error=unauthorized_authority");
+  }
 
   const [issues, departments, verifiedCount, reopenedCount] = await Promise.all([
     db.issue.findMany({
@@ -66,12 +75,12 @@ export default async function AuthorityAnalyticsPage() {
   }
 
   const averageResolutionHours =
-    resolvedCount > 0 ? (totalHours / resolvedCount).toFixed(1) : "26.4";
+    resolvedCount > 0 ? (totalHours / resolvedCount).toFixed(1) : "0.0";
 
   const verificationRate =
     verifiedCount + reopenedCount > 0
       ? Math.round((verifiedCount / (verifiedCount + reopenedCount)) * 100)
-      : 96;
+      : 0;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#12181F]">

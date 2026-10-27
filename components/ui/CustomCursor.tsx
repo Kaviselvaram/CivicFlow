@@ -6,24 +6,21 @@ export function CustomCursor() {
   const [position, setPosition] = useState({ x: -100, y: -100 });
   const [isPointer, setIsPointer] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [hasTouch, setHasTouch] = useState(true);
+  const [hasTouch] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return (
+      "ontouchstart" in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  });
 
   useEffect(() => {
-    // Detect touch device or reduced motion
-    const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (isTouch || prefersReducedMotion) {
-      setHasTouch(true);
-      return;
-    }
-    setHasTouch(false);
+    if (hasTouch) return;
 
     function onMouseMove(e: MouseEvent) {
       setPosition({ x: e.clientX, y: e.clientY });
-      if (!isVisible) setIsVisible(true);
+      setIsVisible(true);
 
       // Check if hovering interactive element
       const target = e.target as HTMLElement | null;
@@ -52,7 +49,7 @@ export function CustomCursor() {
       window.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseleave", onMouseLeave);
     };
-  }, [isVisible]);
+  }, [hasTouch]);
 
   if (hasTouch || !isVisible) return null;
 

@@ -89,7 +89,7 @@ async function main() {
     },
   });
 
-  const crewRoadsRapid = await prisma.fieldCrew.create({
+  await prisma.fieldCrew.create({
     data: {
       name: "Rapid Asphalt Response Unit",
       leadName: "Tom Hardy",

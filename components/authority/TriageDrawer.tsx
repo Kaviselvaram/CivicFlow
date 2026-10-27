@@ -6,9 +6,6 @@ import {
   CheckCircleIcon,
   TruckIcon,
   BuildingIcon,
-  SparklesIcon,
-  CameraIcon,
-  AlertTriangleIcon,
 } from "../icons";
 import { Button } from "../ui/Button";
 import { StatusBadge, PriorityBadge } from "../ui/Badge";
@@ -86,36 +83,90 @@ export function TriageDrawer({
   onUpdated?: () => void;
   showToast?: (type: "success" | "error" | "info", title: string, message?: string) => void;
 }) {
-  const [selectedDeptId, setSelectedDeptId] = useState<string>("");
-  const [selectedPriority, setSelectedPriority] = useState<string>("");
-  const [selectedCrewId, setSelectedCrewId] = useState<string>("");
+  if (!isOpen || !issue) return null;
+
+  return (
+    <TriageDrawerContent
+      key={issue.id}
+      isOpen={isOpen}
+      onClose={onClose}
+      issue={issue}
+      departments={departments}
+      crews={crews}
+      onUpdated={onUpdated}
+      showToast={showToast}
+    />
+  );
+}
+
+function TriageDrawerContent({
+  onClose,
+  issue,
+  departments,
+  crews,
+  onUpdated,
+  showToast,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  issue: DrawerIssueData;
+  departments: DepartmentOption[];
+  crews: CrewOption[];
+  onUpdated?: () => void;
+  showToast?: (type: "success" | "error" | "info", title: string, message?: string) => void;
+}) {
+  const [selectedDeptId, setSelectedDeptId] = useState<string>(
+    issue.department?.id || departments[0]?.id || ""
+  );
+  const [selectedPriority, setSelectedPriority] = useState<string>(
+    issue.priority || "MEDIUM"
+  );
+  const [selectedCrewId, setSelectedCrewId] = useState<string>(
+    issue.crew?.id || ""
+  );
   const [triageNote, setTriageNote] = useState<string>("");
   const [isSavingTriage, setIsSavingTriage] = useState<boolean>(false);
 
   // Status transition state
   const [isResolveModalOpen, setIsResolveModalOpen] = useState<boolean>(false);
-  const [resolutionNotes, setResolutionNotes] = useState<string>("");
-  const [resolutionPhotoUrl, setResolutionPhotoUrl] = useState<string>("");
+  const [resolutionNotes, setResolutionNotes] = useState<string>(
+    issue.resolutionNotes ||
+      "Defect inspected and physical repair executed according to municipal standard specifications."
+  );
+  const [resolutionPhotoUrl, setResolutionPhotoUrl] = useState<string>(
+    issue.resolutionPhotoUrl || RESOLUTION_PHOTO_PRESETS[0].url
+  );
   const [isSubmittingStatus, setIsSubmittingStatus] = useState<boolean>(false);
+  const [isUploadingProof, setIsUploadingProof] = useState<boolean>(false);
+  const [proofStorageLocation, setProofStorageLocation] = useState<string | null>(null);
 
-  // Sync state when issue changes
-  React.useEffect(() => {
-    if (issue) {
-      setSelectedDeptId(issue.department?.id || departments[0]?.id || "");
-      setSelectedPriority(issue.priority || "MEDIUM");
-      setSelectedCrewId(issue.crew?.id || "");
-      setTriageNote("");
-      setResolutionNotes(
-        issue.resolutionNotes ||
-          "Defect inspected and physical repair executed according to municipal standard specifications."
-      );
-      setResolutionPhotoUrl(
-        issue.resolutionPhotoUrl || RESOLUTION_PHOTO_PRESETS[0].url
-      );
+  async function handleCustomResolutionPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingProof(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) {
+          setResolutionPhotoUrl(data.url);
+          setProofStorageLocation(`public${data.url}`);
+        }
+      }
+    } catch (err) {
+      console.error("Resolution photo upload failed:", err);
+    } finally {
+      setIsUploadingProof(false);
     }
-  }, [issue, departments]);
-
-  if (!isOpen || !issue) return null;
+  }
 
   const availableCrews = crews.filter(
     (c) => !selectedDeptId || c.departmentId === selectedDeptId
@@ -496,6 +547,21 @@ export function TriageDrawer({
                 ))}
               </div>
 
+              {/* Custom Photo Upload */}
+              <label className="mt-2 block p-2.5 rounded-xl border border-dashed border-[#14352B]/40 hover:bg-[#EBF3F0]/50 text-center text-xs font-mono font-medium text-[#14352B] cursor-pointer transition mb-3">
+                {isUploadingProof ? (
+                  <span>⏳ Saving photo to public/uploads/...</span>
+                ) : (
+                  <span>+ Upload Custom Evidence Photo to public/uploads</span>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCustomResolutionPhoto}
+                  className="hidden"
+                />
+              </label>
+
               {resolutionPhotoUrl && (
                 <div className="relative rounded-2xl overflow-hidden border border-[#E7E1D7] aspect-video shadow-2xs">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -504,8 +570,11 @@ export function TriageDrawer({
                     alt="Resolution preview"
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-2.5 left-2.5 bg-[#14352B] text-white text-[11px] font-mono px-2.5 py-1 rounded-md font-bold">
-                    ✓ Resolution Proof Attached
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
+                    <div className="bg-[#14352B] text-white text-[11px] font-mono px-2.5 py-1 rounded-md font-bold flex items-center gap-1.5 shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>{proofStorageLocation || "Resolution Proof Attached"}</span>
+                    </div>
                   </div>
                 </div>
               )}

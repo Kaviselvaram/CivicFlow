@@ -21,6 +21,7 @@ const DOMAIN_RULES: Array<{
     HIGH: string[];
     LOW: string[];
   };
+
 }> = [
   {
     category: "ROADS",
@@ -48,6 +49,7 @@ const DOMAIN_RULES: Array<{
       LOW: ["minor crack", "paint", "surface wear"],
     },
   },
+
   {
     category: "WATER",
     subcategory: "Water Main / Sewer Leak",
@@ -176,10 +178,83 @@ const DOMAIN_RULES: Array<{
   },
 ];
 
-export async function classifyCivicIssue(
+async function classifyWithLLM(
   text: string,
-  _imageUrl?: string
-): Promise<AIClassificationResult> {
+  imageUrl?: string
+): Promise<AIClassificationResult | null> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || !apiKey.trim()) return null;
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3500);
+
+    const messages: Array<{ role: string; content: string | Array<{ type: string; text?: string; image_url?: { url: string } }> }> = [
+      {
+        role: "system",
+        content:
+          "You are a municipal civic issue triage AI. Classify the citizen report into one of the 6 categories: ROADS, SANITATION, WATER, ELECTRICAL, INFRASTRUCTURE, TRAFFIC. Priority must be: CRITICAL, HIGH, MEDIUM, or LOW. Return JSON with keys: category, subcategory, departmentSlug, departmentName, priority, confidence (number 0.0-1.0), rationale.",
+      },
+    ];
+
+    if (imageUrl && imageUrl.startsWith("http")) {
+      messages.push({
+        role: "user",
+        content: [
+          { type: "text", text },
+          { type: "image_url", image_url: { url: imageUrl } },
+        ],
+      });
+    } else {
+      messages.push({
+        role: "user",
+        content: text,
+      });
+    }
+
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages,
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+        max_tokens: 250,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    const raw = data.choices?.[0]?.message?.content;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+
+    if (parsed.category && parsed.priority) {
+      return {
+        category: parsed.category,
+        subcategory: parsed.subcategory || `${parsed.category} Issue`,
+        departmentSlug: parsed.departmentSlug || "public-works",
+        departmentName: parsed.departmentName || "Department of Public Works",
+        priority: parsed.priority,
+        confidence: Number((parsed.confidence || 0.95).toFixed(2)),
+        rationale: parsed.rationale || "Categorized via external LLM municipal triage.",
+      };
+    }
+    return null;
+  } catch {
+    return null; // Graceful fallback to heuristic rules
+  }
+}
+
+export function classifyWithLocalHeuristics(
+  text: string
+): AIClassificationResult {
   const normalizedText = text.toLowerCase();
 
   // Score each category based on keyword matches
@@ -267,4 +342,19 @@ export async function classifyCivicIssue(
     confidence: Number(confidence.toFixed(2)),
     rationale,
   };
+}
+
+
+export async function classifyCivicIssue(
+  text: string,
+  imageUrl?: string
+): Promise<AIClassificationResult> {
+  // 1. Try external LLM if configured
+  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim()) {
+    const llm = await classifyWithLLM(text, imageUrl);
+    if (llm) return llm;
+  }
+  // 2. Zero-latency local deterministic heuristic engine
+  return classifyWithLocalHeuristics(text);
+
 }

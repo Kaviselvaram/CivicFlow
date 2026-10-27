@@ -64,11 +64,27 @@ async function runTests() {
   console.log("   • Ticket Created:", ticketNumber, `(Status: ${createData.issue.status})`);
   console.log("   ✓ Issue creation verified!");
 
+  // TEST 3b: Authenticate Authority
+  console.log("\n[Test 3b] Authenticating Authority Supervisor...");
+  const authSupRes = await fetch(`${baseUrl}/api/auth/demo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ persona: "authority" }),
+  });
+  if (!authSupRes.ok) throw new Error(`Authority auth failed: ${authSupRes.status}`);
+  const authorityCookie = authSupRes.headers.get("set-cookie") || "";
+  const authSupData = await authSupRes.json();
+  console.log("   • Authority Authenticated:", authSupData.user.name, `(${authSupData.user.role})`);
+  console.log("   ✓ Authority session verified!");
+
   // TEST 4: Authority Triages Issue (Priority + Crew)
   console.log("\n[Test 4] Authority Triage & Crew Dispatch...");
   const triageRes = await fetch(`${baseUrl}/api/issues/${ticketId}/triage`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: authorityCookie,
+    },
     body: JSON.stringify({
       priority: "CRITICAL",
       note: "Supervisor confirmed cavity depth > 30cm. Escalated to CRITICAL.",
@@ -82,19 +98,26 @@ async function runTests() {
   // TEST 5: Status Progression (IN_PROGRESS -> RESOLVED with Photo Proof)
   console.log("\n[Test 5] Advancing Status & Attaching Resolution Proof...");
   // Step 5a: IN_PROGRESS
-  await fetch(`${baseUrl}/api/issues/${ticketId}/status`, {
+  const inProgRes = await fetch(`${baseUrl}/api/issues/${ticketId}/status`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: authorityCookie,
+    },
     body: JSON.stringify({
       toStatus: "IN_PROGRESS",
       note: "Road Patching Crew Bravo arrived on site.",
     }),
   });
+  if (!inProgRes.ok) throw new Error(`Status update to IN_PROGRESS failed: ${inProgRes.status}`);
 
   // Step 5b: RESOLVED with proof
   const resolveRes = await fetch(`${baseUrl}/api/issues/${ticketId}/status`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: authorityCookie,
+    },
     body: JSON.stringify({
       toStatus: "RESOLVED",
       note: "Cavity compacted with hot asphalt mix. Cured surface level with road.",
@@ -111,7 +134,10 @@ async function runTests() {
   console.log("\n[Test 6] Citizen Confirms Physical Resolution (Happy Path)...");
   const verifyRes = await fetch(`${baseUrl}/api/issues/${ticketId}/verify`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: authCookie,
+    },
     body: JSON.stringify({
       citizenRating: 5,
       citizenFeedback: "Inspected on my walk home. Smooth asphalt patch with no residual gravel.",
@@ -123,25 +149,24 @@ async function runTests() {
   console.log("   • Citizen Rating:", verifyData.issue.citizenRating, "Stars");
   console.log("   ✓ Verification seal awarded!");
 
-  // TEST 7: Reopening Flow (Unhappy Path)
-  console.log("\n[Test 7] Testing Citizen Reopening Workflow on Issue #CF-1002...");
-  const allIssuesRes = await fetch(`${baseUrl}/api/issues`);
-  const allIssuesData = await allIssuesRes.json();
-  const testIssue2 = allIssuesData.issues.find((i: any) => i.ticketNumber === "CF-1002");
-  if (testIssue2) {
-    const reopenRes = await fetch(`${baseUrl}/api/issues/${testIssue2.id}/reopen`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        reopenReason: "Commercial cartons were cleared, but rotting organic bins remain in alley.",
-      }),
-    });
-    if (!reopenRes.ok) throw new Error(`Reopen failed: ${reopenRes.status}`);
-    const reopenData = await reopenRes.json();
-    console.log("   • Issue Reopened Status:", reopenData.issue.status);
-    console.log("   • Reopen Reason:", reopenData.issue.reopenReason);
-    console.log("   ✓ Reopen workflow verified!");
-  }
+  // TEST 7: Reopening Flow (Unhappy Path - Defect Re-occurs)
+  console.log(`\n[Test 7] Testing Citizen Reopening Workflow on Ticket ${ticketNumber}...`);
+  const reopenRes = await fetch(`${baseUrl}/api/issues/${ticketId}/reopen`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: authCookie,
+    },
+    body: JSON.stringify({
+      reopenReason: "Asphalt patch cracked after rainstorm. Loose stones scattering into roadway.",
+    }),
+  });
+  if (!reopenRes.ok) throw new Error(`Reopen failed: ${reopenRes.status}`);
+  const reopenData = await reopenRes.json();
+  console.log("   • Issue Reopened Status:", reopenData.issue.status);
+  console.log("   • Reopen Reason:", reopenData.issue.reopenReason);
+  console.log("   • Escalated Priority:", reopenData.issue.priority);
+  console.log("   ✓ Reopen workflow verified!");
 
   // TEST 8: Analytics Rollups
   console.log("\n[Test 8] Testing Operational Analytics...");

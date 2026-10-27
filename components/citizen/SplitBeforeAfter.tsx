@@ -84,17 +84,16 @@ export function SplitBeforeAfter({
         ✓ {afterLabel}
       </div>
 
-      {/* Before image (Clipped layer) */}
+      {/* Before image (Clipped with modern CSS clip-path) */}
       <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ width: `${sliderPosition}%` }}
+        className="absolute inset-0 pointer-events-none"
+        style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={beforeUrl}
           alt={beforeLabel}
-          className="absolute inset-0 w-full h-full object-cover max-w-none"
-          style={{ width: containerRef.current ? `${containerRef.current.clientWidth}px` : "100%", height: "100%" }}
+          className="w-full h-full object-cover"
           draggable={false}
         />
         <div className="absolute bottom-3 left-3 z-10 px-3 py-1 rounded-lg bg-[#12181F]/90 text-white text-xs font-semibold backdrop-blur-md font-mono border border-white/10 shadow-sm">

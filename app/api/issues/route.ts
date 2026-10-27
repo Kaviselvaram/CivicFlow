@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
+import crypto from "crypto";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { CATEGORIES_CONFIG, IssueCategory } from "@/lib/types";
@@ -107,9 +110,26 @@ export async function POST(req: Request) {
       suggestedPriority,
     } = body;
 
-    if (!category || !address || !latitude || !longitude) {
+    if (!category || !address || latitude === undefined || longitude === undefined) {
       return NextResponse.json(
         { error: "Category, address, and coordinates are required" },
+        { status: 400 }
+      );
+    }
+
+    const latNum = Number(latitude);
+    const lngNum = Number(longitude);
+    if (isNaN(latNum) || isNaN(lngNum) || latNum < -90 || latNum > 90 || lngNum < -180 || lngNum > 180) {
+      return NextResponse.json(
+        { error: "Invalid geographic coordinates provided" },
+        { status: 400 }
+      );
+    }
+
+    const validCategories = ["ROADS", "SANITATION", "WATER", "ELECTRICAL", "INFRASTRUCTURE", "TRAFFIC"];
+    if (!validCategories.includes(category)) {
+      return NextResponse.json(
+        { error: `Invalid category. Must be one of: ${validCategories.join(", ")}` },
         { status: 400 }
       );
     }
@@ -130,9 +150,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Auto-generate ticketNumber (e.g. CF-1007)
-    const count = await db.issue.count();
-    const ticketNumber = `CF-${1000 + count + 1}`;
+    // Safe sequential ticket number generation
+    const latest = await db.issue.findFirst({
+      orderBy: { createdAt: "desc" },
+      select: { ticketNumber: true },
+    });
+    let nextSeq = 1001;
+    if (latest?.ticketNumber?.startsWith("CF-")) {
+      const parsedNum = parseInt(latest.ticketNumber.replace("CF-", ""), 10);
+      if (!isNaN(parsedNum)) nextSeq = Math.max(nextSeq, parsedNum + 1);
+    }
+    const ticketNumber = `CF-${nextSeq}`;
 
     // Auto-resolve department based on category
     const catConfig = CATEGORIES_CONFIG[category as IssueCategory];
@@ -141,35 +169,61 @@ export async function POST(req: Request) {
       where: { slug: deptSlug },
     });
 
-    const newIssue = await db.issue.create({
-      data: {
-        ticketNumber,
-        title: title || `${catConfig?.name || category} Observation`,
-        description: description || "Defect observed by citizen.",
-        category,
-        priority: suggestedPriority || "MEDIUM",
-        status: "REPORTED",
-        address,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        ward: ward || "Ward 4 (Central)",
-        photoUrl:
-          photoUrl ||
-          "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1000&q=80",
-        reporterId,
-        departmentId: dept?.id || null,
-      },
-    });
+    // Persist base64 data URL to physical disk in public/uploads if necessary
+    let persistedPhotoUrl =
+      photoUrl ||
+      "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&w=1000&q=80";
 
-    // Create initial audit trail event
-    await db.statusHistory.create({
-      data: {
-        issueId: newIssue.id,
-        fromStatus: "REPORTED",
-        toStatus: "REPORTED",
-        actorId: reporterId,
-        note: "Issue observed and submitted via citizen mobile web app.",
-      },
+    if (photoUrl && typeof photoUrl === "string" && photoUrl.startsWith("data:image/")) {
+      try {
+        const matches = photoUrl.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+        if (matches) {
+          const rawExt = matches[1].toLowerCase();
+          const ext = rawExt === "jpeg" ? "jpg" : rawExt;
+          const buffer = Buffer.from(matches[2], "base64");
+          const uploadDir = path.join(process.cwd(), "public", "uploads");
+          await mkdir(uploadDir, { recursive: true });
+          const uniqueId = crypto.randomBytes(8).toString("hex");
+          const filename = `civic-${Date.now()}-${uniqueId}.${ext}`;
+          await writeFile(path.join(uploadDir, filename), buffer);
+          persistedPhotoUrl = `/uploads/${filename}`;
+        }
+      } catch (saveErr) {
+        console.error("Error saving base64 image to public/uploads disk:", saveErr);
+      }
+    }
+
+    // Atomic creation of Issue and initial StatusHistory audit trail
+    const newIssue = await db.$transaction(async (tx) => {
+      const created = await tx.issue.create({
+        data: {
+          ticketNumber,
+          title: title?.trim() || `${catConfig?.name || category} Observation`,
+          description: description?.trim() || "Defect observed by citizen.",
+          category,
+          priority: suggestedPriority || "MEDIUM",
+          status: "REPORTED",
+          address: address.trim(),
+          latitude: latNum,
+          longitude: lngNum,
+          ward: ward || "Ward 4 (Central)",
+          photoUrl: persistedPhotoUrl,
+          reporterId: reporterId!,
+          departmentId: dept?.id || null,
+        },
+      });
+
+      await tx.statusHistory.create({
+        data: {
+          issueId: created.id,
+          fromStatus: "REPORTED",
+          toStatus: "REPORTED",
+          actorId: reporterId!,
+          note: "Issue observed and submitted via citizen platform.",
+        },
+      });
+
+      return created;
     });
 
     return NextResponse.json(

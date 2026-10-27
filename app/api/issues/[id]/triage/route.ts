@@ -10,24 +10,32 @@ export async function PATCH(
     const { id } = await params;
     const currentUser = await getCurrentUser();
 
-    // Default to demo authority if testing as guest
-    let actorId = currentUser?.id;
-    if (!actorId) {
-      const demoAuth = await db.user.findUnique({
-        where: { email: "authority@civicflow.org" },
-      });
-      actorId = demoAuth?.id;
-    }
-
-    if (!actorId) {
+    if (!currentUser) {
       return NextResponse.json(
-        { error: "Unauthorized: authority session required" },
+        { error: "Unauthorized: authentication required" },
         { status: 401 }
       );
     }
 
+    if (currentUser.role !== "AUTHORITY" && currentUser.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Forbidden: authority role required to triage issues" },
+        { status: 403 }
+      );
+    }
+
+    const actorId = currentUser.id;
+
     const body = await req.json();
     const { departmentId, priority, crewId, note } = body;
+
+    const validPriorities = ["CRITICAL", "HIGH", "MEDIUM", "LOW"];
+    if (priority && !validPriorities.includes(priority)) {
+      return NextResponse.json(
+        { error: `Invalid priority. Must be one of: ${validPriorities.join(", ")}` },
+        { status: 400 }
+      );
+    }
 
     const issue = await db.issue.findUnique({ where: { id } });
     if (!issue) {

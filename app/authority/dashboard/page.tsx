@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
@@ -8,6 +9,14 @@ export const revalidate = 0;
 
 export default async function AuthorityDashboardPage() {
   const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    redirect("/login?redirect=/authority/dashboard");
+  }
+
+  if (currentUser.role !== "AUTHORITY" && currentUser.role !== "ADMIN") {
+    redirect("/citizen/dashboard?error=unauthorized_authority");
+  }
 
   const [issues, departments, crews] = await Promise.all([
     db.issue.findMany({

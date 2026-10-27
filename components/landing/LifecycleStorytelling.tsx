@@ -8,8 +8,6 @@ import {
   CheckCircleIcon,
   ShieldCheckIcon,
   ArrowRightIcon,
-  MapPinIcon,
-  RoadIcon,
 } from "../icons";
 
 interface Stage {

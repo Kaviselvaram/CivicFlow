@@ -10,17 +10,9 @@ export async function POST(
     const { id } = await params;
     const currentUser = await getCurrentUser();
 
-    let actorId = currentUser?.id;
-    if (!actorId) {
-      const demoCitizen = await db.user.findUnique({
-        where: { email: "citizen@civicflow.org" },
-      });
-      actorId = demoCitizen?.id;
-    }
-
-    if (!actorId) {
+    if (!currentUser) {
       return NextResponse.json(
-        { error: "Citizen session required" },
+        { error: "Unauthorized: authentication required to verify resolution" },
         { status: 401 }
       );
     }
@@ -32,13 +24,34 @@ export async function POST(
       return NextResponse.json({ error: "Issue not found" }, { status: 404 });
     }
 
+    // Only issues in RESOLVED status are eligible for citizen verification
+    if (issue.status !== "RESOLVED") {
+      return NextResponse.json(
+        {
+          error: `Invalid transition: Only issues with status RESOLVED can be verified. Current status is ${issue.status}.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Citizen can only verify their own reported issues (or ADMIN override)
+    if (currentUser.role === "CITIZEN" && issue.reporterId !== currentUser.id) {
+      return NextResponse.json(
+        { error: "Forbidden: You can only verify resolutions for your own reported issues" },
+        { status: 403 }
+      );
+    }
+
+    const rating = typeof citizenRating === "number" ? Math.min(5, Math.max(1, citizenRating)) : 5;
+    const actorId = currentUser.id;
+
     const updatedIssue = await db.issue.update({
       where: { id },
       data: {
         status: "VERIFIED",
         verifiedAt: new Date(),
-        citizenRating: citizenRating || 5,
-        citizenFeedback: citizenFeedback || "Verified by citizen.",
+        citizenRating: rating,
+        citizenFeedback: citizenFeedback || "Verified by resident in satisfactory condition.",
       },
     });
 

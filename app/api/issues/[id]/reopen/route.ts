@@ -10,17 +10,9 @@ export async function POST(
     const { id } = await params;
     const currentUser = await getCurrentUser();
 
-    let actorId = currentUser?.id;
-    if (!actorId) {
-      const demoCitizen = await db.user.findUnique({
-        where: { email: "citizen@civicflow.org" },
-      });
-      actorId = demoCitizen?.id;
-    }
-
-    if (!actorId) {
+    if (!currentUser) {
       return NextResponse.json(
-        { error: "Citizen session required" },
+        { error: "Unauthorized: authentication required to reopen an issue" },
         { status: 401 }
       );
     }
@@ -39,9 +31,33 @@ export async function POST(
       return NextResponse.json({ error: "Issue not found" }, { status: 404 });
     }
 
+    // Only issues in RESOLVED or VERIFIED status can be reopened
+    if (issue.status !== "RESOLVED" && issue.status !== "VERIFIED") {
+      return NextResponse.json(
+        {
+          error: `Invalid transition: Only issues with status RESOLVED or VERIFIED can be reopened. Current status is ${issue.status}.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Citizen can only reopen their own reported issues (or ADMIN override)
+    if (currentUser.role === "CITIZEN" && issue.reporterId !== currentUser.id) {
+      return NextResponse.json(
+        { error: "Forbidden: You can only reopen your own reported issues" },
+        { status: 403 }
+      );
+    }
+
+    const actorId = currentUser.id;
+
     // Escalate priority when reopened
     const escalatedPriority =
-      issue.priority === "LOW" ? "MEDIUM" : "HIGH";
+      issue.priority === "LOW"
+        ? "MEDIUM"
+        : issue.priority === "MEDIUM"
+        ? "HIGH"
+        : "CRITICAL";
 
     const updatedIssue = await db.issue.update({
       where: { id },

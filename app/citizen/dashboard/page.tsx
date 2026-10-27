@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Navbar } from "@/components/layout/Navbar";
@@ -11,7 +12,6 @@ import {
   RotateCcwIcon,
   ShieldCheckIcon,
   MapPinIcon,
-  ArrowRightIcon,
 } from "@/components/icons";
 import { ToastProvider } from "@/components/ui/Toast";
 
@@ -20,22 +20,11 @@ export const revalidate = 0;
 export default async function CitizenDashboardPage() {
   const currentUser = await getCurrentUser();
 
-  let targetUser = currentUser;
-  if (!targetUser) {
-    const fallback = await db.user.findUnique({
-      where: { email: "citizen@civicflow.org" },
-    });
-    if (fallback) {
-      targetUser = {
-        id: fallback.id,
-        name: fallback.name,
-        email: fallback.email,
-        role: fallback.role as "CITIZEN",
-        departmentId: fallback.departmentId,
-        avatarUrl: fallback.avatarUrl,
-      };
-    }
+  if (!currentUser) {
+    redirect("/login?redirect=/citizen/dashboard");
   }
+
+  const targetUser = currentUser;
 
   const issues = await db.issue.findMany({
     where: { reporterId: targetUser?.id },

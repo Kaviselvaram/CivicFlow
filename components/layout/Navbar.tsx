@@ -17,7 +17,8 @@ export function Navbar({ currentUser }: { currentUser?: UserSession | null }) {
       router.push("/");
       router.refresh();
     } catch {
-      window.location.href = "/";
+      router.push("/");
+      router.refresh();
     }
   }
 
@@ -47,6 +48,18 @@ export function Navbar({ currentUser }: { currentUser?: UserSession | null }) {
             <span className="text-[#D8D0C3]">•</span>
             <span>Avg SLA: 26.4h</span>
           </div>
+
+          {/* Live Prisma Studio DB Viewer */}
+          <a
+            href="http://localhost:5555"
+            target="_blank"
+            rel="noreferrer"
+            title="Open Prisma Studio - Live Database GUI Viewer"
+            className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#14352B]/10 hover:bg-[#14352B]/20 border border-[#14352B]/25 text-[11px] font-mono font-bold text-[#14352B] transition cursor-pointer shadow-2xs"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+            <span>Live DB Viewer (:5555) ↗</span>
+          </a>
         </div>
 
         {/* Desktop Navigation Links */}

@@ -83,12 +83,12 @@ export async function GET() {
     const averageResolutionHours =
       resolvedItemCount > 0
         ? Number((totalResolvedDurationMs / (resolvedItemCount * 1000 * 60 * 60)).toFixed(1))
-        : 24.0;
+        : 0.0;
 
     const verificationRate =
-      resolved + verified > 0
-        ? Math.round((verified / (resolved + verified)) * 100)
-        : 100;
+      verified + reopened > 0
+        ? Math.round((verified / (verified + reopened)) * 100)
+        : 0;
 
     return NextResponse.json({
       summary: {

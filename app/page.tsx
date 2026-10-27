@@ -7,13 +7,8 @@ import {
   CivicLogo,
   RoadIcon,
   ShieldCheckIcon,
-  SparklesIcon,
-  CheckCircleIcon,
   ClockIcon,
-  ArrowRightIcon,
-  TruckIcon,
   MapPinIcon,
-  CameraIcon,
   StarIcon,
 } from "@/components/icons";
 import { InteractiveCityMap } from "@/components/map/InteractiveCityMap";
@@ -28,45 +23,62 @@ export default async function LandingPage() {
   const currentUser = await getCurrentUser();
 
   // Fetch real-time issues and statistics from the database
-  const [totalIssues, resolvedIssues, verifiedIssues, criticalCount, sampleIssues, verifiedShowcase] =
-    await Promise.all([
-      db.issue.count(),
-      db.issue.count({ where: { status: "RESOLVED" } }),
-      db.issue.count({ where: { status: "VERIFIED" } }),
-      db.issue.count({ where: { priority: "CRITICAL" } }),
-      db.issue.findMany({
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          ticketNumber: true,
-          title: true,
-          category: true,
-          priority: true,
-          status: true,
-          address: true,
-          latitude: true,
-          longitude: true,
-          photoUrl: true,
-          ward: true,
-        },
-      }),
-      db.issue.findMany({
-        where: {
-          OR: [{ status: "VERIFIED" }, { status: "RESOLVED" }],
-        },
-        take: 3,
-        orderBy: { updatedAt: "desc" },
-        include: {
-          department: true,
-          crew: true,
-        },
-      }),
-    ]);
+  const [
+    totalIssues,
+    verifiedIssues,
+    reopenedIssues,
+    sampleIssues,
+    verifiedShowcase,
+    resolvedWithDates,
+  ] = await Promise.all([
+    db.issue.count(),
+    db.issue.count({ where: { status: "VERIFIED" } }),
+    db.issue.count({ where: { status: "REOPENED" } }),
+    db.issue.findMany({
+      take: 10,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        ticketNumber: true,
+        title: true,
+        category: true,
+        priority: true,
+        status: true,
+        address: true,
+        latitude: true,
+        longitude: true,
+        photoUrl: true,
+        ward: true,
+      },
+    }),
+    db.issue.findMany({
+      where: {
+        OR: [{ status: "VERIFIED" }, { status: "RESOLVED" }],
+      },
+      take: 3,
+      orderBy: { updatedAt: "desc" },
+      include: {
+        department: true,
+        crew: true,
+      },
+    }),
+    db.issue.findMany({
+      where: { resolvedAt: { not: null } },
+      select: { createdAt: true, resolvedAt: true },
+    }),
+  ]);
+
+  let avgResolutionHours = "24.0";
+  if (resolvedWithDates.length > 0) {
+    const totalMs = resolvedWithDates.reduce((acc, r) => {
+      return acc + (new Date(r.resolvedAt!).getTime() - new Date(r.createdAt).getTime());
+    }, 0);
+    avgResolutionHours = (totalMs / (resolvedWithDates.length * 1000 * 60 * 60)).toFixed(1);
+  }
 
   const verificationRate =
-    resolvedIssues + verifiedIssues > 0
-      ? Math.round((verifiedIssues / (resolvedIssues + verifiedIssues)) * 100)
+    verifiedIssues + reopenedIssues > 0
+      ? Math.round((verifiedIssues / (verifiedIssues + reopenedIssues)) * 100)
       : 100;
 
   return (
@@ -149,7 +161,7 @@ export default async function LandingPage() {
                     </div>
                     <div>
                       <div className="font-display font-bold text-2xl sm:text-3xl text-[#14352B]">
-                        26.4h
+                        {avgResolutionHours}h
                       </div>
                       <div className="text-[10px] font-mono uppercase tracking-wider text-[#7A8799] mt-0.5 font-semibold">
                         Average SLA

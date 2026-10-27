@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import confetti from "canvas-confetti";
 import { CheckCircleIcon, RotateCcwIcon, StarIcon, ShieldCheckIcon } from "../icons";
 import { Button } from "../ui/Button";
@@ -30,6 +31,7 @@ export function VerificationPrompt({
   onStatusUpdated,
   showToast,
 }: VerificationPromptProps) {
+  const router = useRouter();
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [isReopenModalOpen, setIsReopenModalOpen] = useState(false);
   const [rating, setRating] = useState<number>(5);
@@ -62,6 +64,7 @@ export function VerificationPrompt({
       showToast?.("success", "Resolution Verified!", "Thank you for confirming the repair.");
       setIsVerifyModalOpen(false);
       onStatusUpdated?.();
+      router.refresh();
     } catch {
       showToast?.("error", "Error", "Could not verify resolution. Please try again.");
     } finally {
@@ -90,6 +93,7 @@ export function VerificationPrompt({
       showToast?.("info", "Issue Reopened", "Ticket has been escalated back to Operations.");
       setIsReopenModalOpen(false);
       onStatusUpdated?.();
+      router.refresh();
     } catch {
       showToast?.("error", "Error", "Could not reopen ticket.");
     } finally {
