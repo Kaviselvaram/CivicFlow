@@ -11,13 +11,15 @@
     "db:studio": "prisma studio",
     "test": "tsx tests/run-all-tests.ts",
     "test:ai": "tsx tests/ai-evaluation.ts",
-    "test:e2e": "tsx tests/e2e-workflow.ts"
+    "test:e2e": "tsx tests/e2e-workflow.ts",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "@vercel/blob": "^2.8.2",
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^13.4.3",
@@ -38,6 +40,7 @@
     "eslint-config-next": "16.3.6",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vercel": "^65.4.0"
   }
 }

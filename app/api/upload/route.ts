@@ -76,13 +76,23 @@ export async function POST(req: Request) {
     const uniqueId = crypto.randomBytes(12).toString("hex");
     const filename = `civic-${Date.now()}-${uniqueId}.${extension}`;
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    let publicUrl = "";
 
-    const filePath = path.join(uploadDir, filename);
-    await writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/${filename}`;
+    // Upload to Vercel Blob if configured, else fall back to local disk
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const { put } = await import("@vercel/blob");
+      const blob = await put(`evidence/${filename}`, buffer, {
+        access: "public",
+        contentType: file.type,
+      });
+      publicUrl = blob.url;
+    } else {
+      const uploadDir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      publicUrl = `/uploads/${filename}`;
+    }
 
     return NextResponse.json({
       success: true,
